@@ -64,4 +64,9 @@ namespace luMath
     {
         return (m - 1 - r) == c;
     }
+
+    double zero_matrix_initer(size_t m, size_t n, size_t r, size_t c)
+    {
+        return 0;
+    }
 }

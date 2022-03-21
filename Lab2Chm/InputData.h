@@ -12,6 +12,8 @@ namespace luMath
 
     double unit_matrix_initer(size_t m, size_t n, size_t r, size_t c);
 
+    double zero_matrix_initer(size_t m, size_t n, size_t r, size_t c);
+
     char getSymbol(std::initializer_list<char> list,
         std::string notification_message = "",
         std::string error_message = "Недопустимое значение, попробуйте ещё раз.\n->");
@@ -26,157 +28,252 @@ namespace luMath
     private:
         std::ifstream* _fin;
         std::ofstream* _fout;
-        Matrix<double>* _matrix;
-        Vector<double>* _result;
+        // основные данные
+        Matrix<double>* _expandedMatrix;
+        Matrix<double>* A;
+        Vector<double>* b;
+        Vector<double>* x;
+        int m; // размерность квадратной матрицы
+        // проверка и точность
+        Vector<double>* ResidualVector;
+        
+
         int _type;
-        int _matrixDimention;
         double _determinant = 1;
+        double _eps = 1e-12;
         int _NAfterComma;
     public:
 
         InputData()
         {
-            _fin = new std::ifstream("input.txt");
-            
-
+            _fin  = new std::ifstream("input.txt");
+            _fout = new std::ofstream("output.txt", std::ios::app);
             *_fin >> _type;
             std::cout << "\n\tТип задачи: " << _type;
-            *_fin >> _matrixDimention;
-            std::cout << "\n\tПорядок матрицы: " << _matrixDimention;
+            *_fin >> m;
+            std::cout << "\n\tПорядок матрицы: " << m;
 
-            double* _array = new double[_matrixDimention * (_matrixDimention + 1)];
-            for (int i = 0; i < (_matrixDimention + 1) *_matrixDimention; i++)
-                *_fin >> _array[i];
+            double* array = new double[m * (m + 1)];
+            for (int i = 0; i < (m + 1) * m; i++)
+                *_fin >> array[i];
 
-            _matrix = new Matrix<double>(_matrixDimention, _matrixDimention + 1, _array);
-            delete[] _array;
-            std::cout << "\n\tКоэффициенты считанной матрицы и вектор свободных коэффициентов (последний стоблик):\n\n" << *_matrix;
+            _expandedMatrix = new Matrix<double>(m, m + 1, array);
+            delete[] array;
+            std::cout << "\n\tКоэффициенты считанной матрицы и вектор свободных коэффициентов (последний стоблик):\n\n" << *_expandedMatrix;
+            setA(*_expandedMatrix, m);
+            setB(*_expandedMatrix, m);
+            x = new Vector<double>(m);
+            (*x).transposition();
             delete _fin;
         }
+
+        // инициализация квадратной матрицы
+        void setA(const Matrix<double>& matrix, size_t size) 
+        {
+            A = new Matrix<double>(size);
+            for (int i = 0; i < size; i++)
+                for (int j = 0; j < size; j++)
+                    (*A)[i][j] = matrix[i][j];
+        }
+
+        // инициализация вектора свободных коэффициентов - initialization of the vector of free coefficients
+        void setB(const Matrix<double>& matrix, size_t size) // size - number of rows 
+        {
+            b = new Vector<double>(size);
+            for (int i = 0; i < size; i++)
+                (*b)[i] = matrix[i][size];
+            (*b).transposition();
+        }
+
         ~InputData()
         {
-            delete[] _matrix;
-            delete[] _result;
+            delete[] _expandedMatrix;
+            delete[] A;
+            delete[] b;
+            delete[] x;
+            delete[] ResidualVector;
+            delete _fout;
         }
   
-        
+        //вектор невязки
+        void setResidualVector(const Vector<double>& _x) 
+        {
+            *_fout << "\nВектор невязки e*:"
+                << "\nA:\n" << (*A)
+                << "\n* x:\n" << _x
+                << "--------------------------\n" << (*A) * _x
+                << "-\n" << (*b)
+                << "--------------------------\n" << ((*A) * _x) -  (*b);
+            ResidualVector = new Vector<double>(m);
+            (*ResidualVector).transposition();
+            (*ResidualVector) = ((*A) * _x) - (*b);
+        }
+
+
         void GaussMethod() 
         {
-
-            _fout = new std::ofstream("output.txt", std::ios::app);
             *_fout << "\nМетод Гаусса:\n";
-            Matrix<double> tempMatrix(*_matrix);
+
+            // удобнее использовать расширенную матрицу, поэтому зафиксируем её
+            Matrix<double> tempMatrix(*_expandedMatrix);
+
             // Прямой ход метода Гаусса - преобразование матрицы к треугольному виду
-            for (int i = 0; i < _matrixDimention; i++) // проходим по всем строкам
+            for (int i = 0; i < m; i++) // проходим по всем строкам
             {
                 *_fout << "i = "<< i << "\n" << std::setw(10) << tempMatrix << "\n";
                 double coeff = tempMatrix[i][i]; // запоминаем коэффициент по диагонали
                 _determinant *= coeff;
-                //std::cout << "\ncoeff=" << coeff << "\n";
-                //std::cout << "\n_determinant=" << _determinant << "\n";
+                std::cout << "\ncoeff=" << coeff << "\n";
+                std::cout << "\n_determinant=" << _determinant << "\n";
                 
-                for (int j = i; j < _matrixDimention + 1; j++) // проходим по всем элементам текущей строки, включая вектор коэффициентов
+                for (int j = i; j < m + 1; j++) // проходим по всем элементам текущей строки, включая вектор коэффициентов
                 {
-                    //std::cout << '\n' << tempMatrix[i][j] << " / " << coeff << " = ";
-                    tempMatrix[i][j] /= coeff; // преобразуем диагональ матрицы к единичной диагонали (подготовительная стадия)
-                    //std::cout << tempMatrix[i][j] << '\n';
-
-                    //std::cout << '\n' << std::setw(10) << tempMatrix;
+                    std::cout << '\n' << tempMatrix[i][j] << " / " << coeff << " = ";
+                    // если это элемент на диагонали, то он вырождается в единицу, 
+                    // а если любой другой на текущей строке, то просто делится на этот коэффициент
+                    tempMatrix[i][j] /= coeff; 
+                    std::cout << tempMatrix[i][j] << '\n';
+                    std::cout << '\n' << std::setw(10) << tempMatrix;
 
                 }
-                //std::cout << '\n' << std::setw(10) << tempMatrix;
-                for (int j = i + 1; j < _matrixDimention; j++)
+                std::cout << '\n' << std::setw(10) << tempMatrix;
+                for (int j = i + 1; j < m; j++)
                 {
-                    coeff = tempMatrix[j][i]; // запоминаем коэффициент преобразования 
-                    for (int k = i; k < _matrixDimention + 1; k++) // проходим по всем элементам текущей строки, включая вектор коэффициентов
+                    coeff = tempMatrix[j][i]; // запоминаем коэффициент умножения 
+                    for (int k = i; k < m + 1; k++) // проходим по всем элементам строки, некоторые элементы которой будут обнуляться
                     {
-                        //std::cout << '\n' << tempMatrix[j][k] << " - " << coeff << " * " << tempMatrix[i][k] << " = ";
-                        tempMatrix[j][k] -= coeff * tempMatrix[i][k]; // преобразуем диагональ матрицы к единичной диагонали (подготовительная стадия)
-                        //std::cout << tempMatrix[j][k] << '\n';
-
-                        //std::cout << '\n' << std::setw(10) << tempMatrix;
-
+                        std::cout << '\n' << tempMatrix[j][k] << " - " << coeff << " * " << tempMatrix[i][k] << " = ";
+                        tempMatrix[j][k] -= coeff * tempMatrix[i][k]; // вычитаем из текущей строки верхнюю i-ю строку помноженную на coeff
+                        std::cout << tempMatrix[j][k] << '\n'; // в результате получим некоторое количество нулей под единицей
+                        std::cout << '\n' << std::setw(10) << tempMatrix;
                     }
-                    //std::cout << '\n' << std::setw(10) << tempMatrix;
+                    std::cout << '\n' << std::setw(10) << tempMatrix;
                 }
             }
-            //std::cout << "\nМатрица с единичной диагональю: \n" << std::setw(10) << tempMatrix;
-            //std::cout << "\nОпределитель матрицы: " << _determinant << "\n";
+            std::cout << "\nМатрица с единичной диагональю: \n" << std::setw(10) << tempMatrix;
+            std::cout << "\nОпределитель матрицы: " << _determinant << "\n";
 
             // Обратный ход метода Гаусса
-            _result = new Vector<double>(_matrixDimention);
-            for (int i = _matrixDimention - 1; i >= 0; i--)
+            for (int i = m - 1; i >= 0; i--)
             {
                 double sumCoeff = 0;
-                for (int j = i + 1; j < _matrixDimention; j++) 
+                for (int j = i + 1; j < m; j++) 
                 {
-                    //std::cout << "\n" << tempMatrix[i][j] << " * " << (*_result)[j] << " + " << sumCoeff << " = ";
-                    sumCoeff += tempMatrix[i][j] * (*_result)[j];
-                    //std::cout << sumCoeff << "\n";
+                    std::cout << "\n" << tempMatrix[i][j] << " * " << (*x)[j] << " + " << sumCoeff << " = ";
+                    sumCoeff += tempMatrix[i][j] * (*x)[j];
+                    std::cout << sumCoeff << "\n";
                 }
-                //std::cout << "result: " << tempMatrix[i][_matrixDimention] << " - " << sumCoeff << " = ";
-                (*_result)[i] = tempMatrix[i][_matrixDimention] - sumCoeff;
-                //std::cout << (*_result)[i] << "\n";
+                std::cout << "result: " << tempMatrix[i][m] << " - " << sumCoeff << " = ";
+                (*x)[i] = tempMatrix[i][m] - sumCoeff;
+                std::cout << (*x)[i] << "\n";
 
             }
-
-            (*_result).transposition();
-
-            std::cout << "\nРезультат:\n" << *_result;
-            std::cout << "\nОпределитель: " << _determinant << "\n";
-            *_fout << "\nРезультат:\n" << *_result
+            *_fout << "\nРезультат:\n" << *x
                    << "\nОпределитель: " << _determinant << "\n";
-            delete _fout;
-            
-
+            setResidualVector(*x);
         }
     
         void DecompositionMethod() 
         {
             // Раскладываем матрицу _matrix на матрицы B и C так, что A = B * C
-            Matrix<double>* B = new Matrix<double>(_matrixDimention, unit_matrix_initer);
-            Matrix<double>* C = new Matrix<double>(_matrixDimention, unit_matrix_initer);
+            Matrix<double>* B = new Matrix<double>(m, unit_matrix_initer);
+            Matrix<double>* C = new Matrix<double>(m, unit_matrix_initer);
             std::cout << "B: \n" << *B << "\nC:\n" << *C << "\n";
             
-            for(int j = 1; j < _matrixDimention; j++)
-                for (int i = j; j < _matrixDimention; j++)
+            for (int j = 0; j < m; j++)
+            {
+                // b_ij = a_ij - sum(b_ik*c_kj)
+                for (int i = j; i < m; i++)// проходим по элементам столбца матрицы B
                 {
                     double sumCoeff = 0;
-                    for (int k = 1; k < j - 1; k++) 
+                    for (int k = 0; k < j - 1; k++)
                     {
                         std::cout << "\n" << (*B)[i][k] << " * " << (*C)[k][j] << " + " << sumCoeff << " = ";
                         sumCoeff += (*B)[i][k] * (*C)[k][j];
                         std::cout << sumCoeff;
                     }
 
-                    std::cout << "\n" << (*_matrix)[i][j] << " - " << sumCoeff << " = ";
-                    (*B)[i][j] = (*_matrix)[i][j] - sumCoeff;
+                    std::cout << "\n" << (*A)[i][j] << " - " << sumCoeff << " = ";
+                    (*B)[i][j] = (*A)[i][j] - sumCoeff;
                     std::cout << (*B)[i][j] << "\n";
 
 
-                    std::cout << "B: \n" << *B << "\nC:\n" << *C << "\n";
+                    std::cout << "B: \n" << std::setw(10) << *B << "\nC:\n" << std::setw(10) << *C << "\n";
                 }
 
-            for(int i = 1; i < _matrixDimention - 1; i++)
-                for (int j = i + 1; j < _matrixDimention; j++) 
+                std::cout << "\nОбработали столбец матрицы B: " << j << "\n";
+
+                // c_ij = (1/b_ii)*(a_ij - sum(b_ik*c_kj))
+                for (int i = j + 1; i < m; i++)
                 {
                     double sumCoeff = 0;
-                    for (int k = 1; k < i - 1; i++) 
+                    for (int k = 0; k < i - 1; k++)
                     {
-                        std::cout << "\n" << (*B)[i][k] << " * " << (*C)[k][j] <<" + "<< sumCoeff << " = ";
-                        sumCoeff += (*B)[i][k] * (*C)[k][j];
+                        std::cout << "\n" << (*B)[j][k] << " * " << (*C)[k][i] << " + " << sumCoeff << " = ";
+                        sumCoeff += (*B)[j][k] * (*C)[k][i];
                         std::cout << sumCoeff;
-                        
-                    }
-                    std::cout << "(1 / " << (*B)[i][i] << ") * (" << (*_matrix)[i][j] << " - " << sumCoeff << ")\n";
-                    (*C)[i][j] = (1 / (*B)[i][i]) * ((*_matrix)[i][j] - sumCoeff);
-                    std::cout << (*C)[i][j];
 
-                    std::cout << "B: \n" << *B << "\nC:\n" << *C << "\n";
+                    }
+                    std::cout << "\n(1 / " << (*B)[j][j] << ") * (" << (*A)[j][i] << " - " << sumCoeff << ") = ";
+                    (*C)[j][i] = (1 / (*B)[j][j]) * ((*A)[j][i] - sumCoeff);
+                    std::cout << (*C)[j][i] << "\n";
+
+                    std::cout << "B: \n" <<std::setw(10) << *B << "\nC:\n" << std::setw(10) << *C << "\n";
                 }
+                std::cout << "\nОбработали строку матрицы C: " << j << "\n";
+
+            }
+
                
-            std::cout << "\nB * C: \n" << *B << "\n*\n" << *C << "\n" << *B*(*C) << "\n";
+            std::cout << "\nB * C: \n" << std::setw(10) << *B << "\n*\n" << std::setw(10) << *C << "\n" << std::setw(10) << *B*(*C) << "\n";
         
+        }
+    
+        void OrtogonalizationMethod() 
+        {
+            Matrix<double> A(m+1, zero_matrix_initer);
+            for (int i = 0; i < m; i++)
+            {
+                for (int j = 0; j < m + 1; j++)
+                {
+                    /*if (j == m)
+                        A[i][j] = -(*A)[i][j];
+                    else
+                        A[i][j] = (*_matrix)[i][j];*/
+                }
+                std::cout << "\nA = \n" << A;
+            }
+            A[m][m] = 1;
+            std::cout << "\nA = \n" << A;
+        
+        
+        }
+
+        void SimpleIterationMethod() 
+        {
+            Matrix<double> a(m);
+            Vector<double> b(m);
+            
+
+            Vector<double> x0(b);
+            Vector<double> x1(b);
+            Vector<double> mod(m);
+            do 
+            {
+                for (int i = 0; i < m; i++)
+                {
+                    b[i] = (*A)[i][m - 1] / (*A)[i][i];
+                    for (int j = 0; j < m; j++)
+                        if (i == j)
+                            a[i][j] = 0;
+                        else
+                            a[i][j] = -(*A)[i][j] / (*A)[i][i];
+                    std::cout << "\nb=\n" << std::setw(10) << b << "\na=\n" << std::setw(10) << a;
+                }
+                x1 = b + a * x0;
+                 mod = x1 - x0;
+            } while (mod.getModule() );
+
         }
     };
 }
