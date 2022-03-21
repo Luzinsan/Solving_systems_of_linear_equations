@@ -8,14 +8,14 @@
 
 namespace luMath
 {
-    template <class T>
-    T invert_unit_matrix_initer(size_t m, size_t n, size_t r, size_t c);
+    //template <class T>
+    double invert_unit_matrix_initer(size_t m, size_t n, size_t r, size_t c);
 
-    template <class T>
-    T unit_matrix_initer(size_t m, size_t n, size_t r, size_t c);
+    //template <class T>
+    double unit_matrix_initer(size_t m, size_t n, size_t r, size_t c);
 
-    template <class T>
-    T zero_matrix_initer(size_t m, size_t n, size_t r, size_t c);
+    //template <class T>
+    double zero_matrix_initer(size_t m, size_t n, size_t r, size_t c);
 
     char getSymbol(std::initializer_list<char> list,
         std::string notification_message = "",
@@ -160,15 +160,25 @@ namespace luMath
             *_fout << "\nЕвклидова норма вектора невязки: " << (*ResidualVector).getModule() << "\n";
         }
 
-        static Vector<T> GaussMethod(const Matrix<T>& _A, const Vector<T>& _b, T& determinant)
+        void setDecompositionMethod()
         {
-            Matrix<T> expandedMatrix(_A.getRows(), _A.getCols() + 1);
+            *_fout << "\nМетод Декомпозиции:\n";
+            (*x) = DecompositionMethod(*A, *b, _determinant);
+            *_fout << "\nРезультат:\n" << (*x)
+                << "\nОпределитель: " << _determinant << "\n";
+            setResidualVector(*A, *x, *b);
+            *_fout << "\nЕвклидова норма вектора невязки: " << (*ResidualVector).getModule() << "\n";
+        }
+
+        static Vector<T> GaussMethod(const Matrix<T>& A, const Vector<T>& b, T& determinant)
+        {
+            Matrix<T> expandedMatrix(A.getRows(), A.getCols() + 1);
             for (int i = 0; i < expandedMatrix.getRows(); i++)
                 for (int j = 0; j < expandedMatrix.getCols(); j++)
                     if (j == expandedMatrix.getCols() - 1)
-                        expandedMatrix[i][j] = _b[i];
+                        expandedMatrix[i][j] = b[i];
                     else
-                        expandedMatrix[i][j] = _A[i][j];
+                        expandedMatrix[i][j] = A[i][j];
             //*_fout << "\nРасширенная матрица = \n" << expandedMatrix;
             return GaussMethod(expandedMatrix, determinant);
         }
@@ -236,66 +246,84 @@ namespace luMath
         }
     
         
-        void DecompositionMethod() 
+        static Vector<T> DecompositionMethod(const Matrix<T>& A, const Vector<T>& b, T& determinant)
         {
             // Раскладываем матрицу _matrix на матрицы B и C так, что A = B * C
-            Matrix<T>* B = new Matrix<T>(m, unit_matrix_initer<T>);
-            Matrix<T>* C = new Matrix<T>(m, unit_matrix_initer<T>);
-            std::cout << "B: \n" << *B << "\nC:\n" << *C << "\n";
-            
+            Matrix<T> B(A.getRows(), unit_matrix_initer);
+            Matrix<T> C(A.getRows(), unit_matrix_initer);
+            //std::cout << "B: \n" << B << "\nC:\n" << C << "\n";
+            unsigned m = B.getRows();
             for (int j = 0; j < m; j++)
             {
                 // b_ij = a_ij - sum(b_ik*c_kj)
                 for (int i = j; i < m; i++)// проходим по элементам столбца матрицы B
                 {
                     T sumCoeff = 0;
-                    for (int k = 0; k < j - 1; k++)
+                    for (int k = 0; k <= j - 1; k++)
                     {
-                        std::cout << "\n" << (*B)[i][k] << " * " << (*C)[k][j] << " + " << sumCoeff << " = ";
-                        sumCoeff += (*B)[i][k] * (*C)[k][j];
-                        std::cout << sumCoeff;
+                        //std::cout << "\n" << B[i][k] << " * " << C[k][j] << " + " << sumCoeff << " = ";
+                        sumCoeff += B[i][k] * C[k][j];
+                        //std::cout << sumCoeff;
                     }
-
-                    std::cout << "\n" << (*A)[i][j] << " - " << sumCoeff << " = ";
-                    (*B)[i][j] = (*A)[i][j] - sumCoeff;
-                    std::cout << (*B)[i][j] << "\n";
-
-
-                    std::cout << "B: \n" << std::setw(10) << *B << "\nC:\n" << std::setw(10) << *C << "\n";
+                    //std::cout << "\n" << (*A)[i][j] << " - " << sumCoeff << " = ";
+                    B[i][j] = A[i][j] - sumCoeff;
+                    //std::cout << B[i][j] << "\n";
+                    //std::cout << "B: \n" << std::setw(10) << B << "\nC:\n" << std::setw(10) << C << "\n";
                 }
-
-                std::cout << "\nОбработали столбец матрицы B: " << j << "\n";
-
+                //std::cout << "\nОбработали столбец матрицы B: " << j << "\n";
                 // c_ij = (1/b_ii)*(a_ij - sum(b_ik*c_kj))
                 for (int i = j + 1; i < m; i++)
                 {
                     T sumCoeff = 0;
-                    for (int k = 0; k < i - 1; k++)
+                    for (int k = 0; k <= j - 1; k++)
                     {
-                        std::cout << "\n" << (*B)[j][k] << " * " << (*C)[k][i] << " + " << sumCoeff << " = ";
-                        sumCoeff += (*B)[j][k] * (*C)[k][i];
+                        std::cout << "\n" << B[j][k] << " * " << C[k][i] << " + " << sumCoeff << " = ";
+                        sumCoeff += B[j][k] * C[k][i];
                         std::cout << sumCoeff;
 
                     }
-                    std::cout << "\n(1 / " << (*B)[j][j] << ") * (" << (*A)[j][i] << " - " << sumCoeff << ") = ";
-                    (*C)[j][i] = (1 / (*B)[j][j]) * ((*A)[j][i] - sumCoeff);
-                    std::cout << (*C)[j][i] << "\n";
-
-                    std::cout << "B: \n" <<std::setw(10) << *B << "\nC:\n" << std::setw(10) << *C << "\n";
+                    //std::cout << "\n(1 / " << B[j][j] << ") * (" << (*A)[j][i] << " - " << sumCoeff << ") = ";
+                    C[j][i] = (1 / B[j][j]) * (A[j][i] - sumCoeff);
+                    //std::cout << C[j][i] << "\n";
+                    //std::cout << "B: \n" <<std::setw(10) << B << "\nC:\n" << std::setw(10) << C << "\n";
                 }
-                std::cout << "\nОбработали строку матрицы C: " << j << "\n";
-
+                //std::cout << "\nОбработали строку матрицы C: " << j << "\n";
             }
 
-               
-            std::cout << "\nB * C: \n" << std::setw(10) << *B << "\n*\n" << std::setw(10) << *C << "\n" << std::setw(10) << *B*(*C) << "\n";
-        
+            std::cout << "\nB * C: \n" << std::setw(10) << B << "\n*\n" << std::setw(10) << C << "\n" << std::setw(10) << B*C << "\n";
+            Vector<T> y(m);
+            determinant = 1;
+            for (int i = 0; i < m; i++)
+            {
+                T sumCoeff = 0;
+                for (int k = 0; k <= i - 1; k++)
+                    sumCoeff += B[i][k] * y[k];
+                //std::cout << "\ni=" << i << ": y = " << " ( " << (*b)[i] << " - " << sumCoeff << ") / " << B[i][i] << " = ";
+                y[i] = (b[i] - sumCoeff) / B[i][i];
+                determinant *= B[i][i];
+                //std::cout << y[i];
+            }
+            //std::cout << "\ny=" <<y<< "\n";
+            Vector<T> x(m);
+            for (int i = m - 1; i >= 0; i--)
+            {
+                T sumCoeff = 0;
+                for (int k = i+1; k < m; k++)
+                    sumCoeff += C[i][k] * x[k];
+                //std::cout << "\ni=" << i << ": x = "  << y[i] << " - " << sumCoeff << " = ";
+                x[i] = y[i] - sumCoeff;
+                //std::cout << x[i];
+            }
+            //std::cout << "\nx=" << x << "\n";
+            x.transposition();
+            return x;
+
         }
     
         
         void OrtogonalizationMethod() 
         {
-            Matrix<T> A(m+1, zero_matrix_initer<T>);
+            Matrix<T> A(m+1, zero_matrix_initer);
             for (int i = 0; i < m; i++)
             {
                 for (int j = 0; j < m + 1; j++)
