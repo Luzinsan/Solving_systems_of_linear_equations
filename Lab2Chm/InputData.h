@@ -30,6 +30,7 @@ namespace luMath
         std::ofstream* _fout;
         // основные данные
         Matrix<double>* _expandedMatrix;
+        Matrix<double>* _inverseMatrix;
         Matrix<double>* A;
         Vector<double>* b;
         Vector<double>* x;
@@ -37,7 +38,6 @@ namespace luMath
         // проверка и точность
         Vector<double>* ResidualVector;
         
-
         int _type;
         double _determinant = 1;
         double _eps = 1e-12;
@@ -58,12 +58,17 @@ namespace luMath
                 *_fin >> array[i];
 
             _expandedMatrix = new Matrix<double>(m, m + 1, array);
+            _inverseMatrix = new Matrix<double>(m);
             delete[] array;
             std::cout << "\n\tКоэффициенты считанной матрицы и вектор свободных коэффициентов (последний стоблик):\n\n" << *_expandedMatrix;
             setA(*_expandedMatrix, m);
             setB(*_expandedMatrix, m);
             x = new Vector<double>(m);
             (*x).transposition();
+
+            ResidualVector = new Vector<double>(m);
+            (*ResidualVector).transposition();
+            
             delete _fin;
         }
 
@@ -87,90 +92,141 @@ namespace luMath
 
         ~InputData()
         {
-            delete[] _expandedMatrix;
-            delete[] A;
-            delete[] b;
-            delete[] x;
-            delete[] ResidualVector;
+            delete _expandedMatrix;
+            delete _inverseMatrix;
+            delete A;
+            delete x;
+            delete b;
+            delete ResidualVector;
             delete _fout;
         }
   
+
+        Matrix<double>& getExpandedMatrix() { return *_expandedMatrix; }
         //вектор невязки
-        void setResidualVector(const Vector<double>& _x) 
+        void setResidualVector(const Matrix<double>& _A, const Vector<double>& _x, const Vector<double>& _b)
         {
             *_fout << "\nВектор невязки e*:"
-                << "\nA:\n" << (*A)
+                << "\nA:\n" << _A
                 << "\n* x:\n" << _x
-                << "--------------------------\n" << (*A) * _x
-                << "-\n" << (*b)
-                << "--------------------------\n" << ((*A) * _x) -  (*b);
-            ResidualVector = new Vector<double>(m);
-            (*ResidualVector).transposition();
-            (*ResidualVector) = ((*A) * _x) - (*b);
+                << "--------------------------\n" << _A * _x
+                << "-\n" << _b
+                << "--------------------------\n" << (_A * _x) - _b;
+            
+            (*ResidualVector) = (_A * _x) - _b;
         }
 
 
-        void GaussMethod() 
+        void setInverseMatrixByMethod(Vector<double>(*Method)(const Matrix<double>&, const Vector<double>&, double& determinant))
+        {
+            Vector<Vector<double>> x_temp(m);
+            Vector<Vector<double>> E(m); 
+            for (int i = 0; i < m; i++)
+            {
+                E[i] = Vector<double>(m);
+                for (int j = 0; j < m; j++)
+                    if (i == j)
+                        E[i][j] = 1;
+                    else
+                        E[i][j] = 0;
+                E[i].transposition();
+            }
+            //std::cout << "\nE:\n" << E << "\n";
+
+            for (int i = 0; i < m; i++) 
+            {
+                x_temp[i] = Method(*A, E[i], _determinant);
+                //std::cout << "\nx'[" << i << "]=\n" << x_temp[i];
+            }
+            for (int i = 0; i < m; i++)
+                for (int j = 0; j < m; j++)
+                    (*_inverseMatrix)[i][j] = x_temp[j][i];
+            *_fout << "\nОбратная матрица:\n" << std::setw(10) << (*_inverseMatrix);
+        }
+
+        void setGaussMethod() 
         {
             *_fout << "\nМетод Гаусса:\n";
+            (*x) = GaussMethod(*_expandedMatrix, _determinant);
+            *_fout << "\nРезультат:\n"   << (*x)
+                   << "\nОпределитель: " << _determinant << "\n";
+            setResidualVector(*A, *x, *b);
+            *_fout << "\nЕвклидова норма вектора невязки: " << (*ResidualVector).getModule() << "\n";
+        }
 
+        static Vector<double> GaussMethod(const Matrix<double>& _A, const Vector<double>& _b, double& determinant)
+        {
+            Matrix<double> expandedMatrix(_A.getRows(), _A.getCols() + 1);
+            for (int i = 0; i < expandedMatrix.getRows(); i++)
+                for (int j = 0; j < expandedMatrix.getCols(); j++)
+                    if (j == expandedMatrix.getCols() - 1)
+                        expandedMatrix[i][j] = _b[i];
+                    else
+                        expandedMatrix[i][j] = _A[i][j];
+            //*_fout << "\nРасширенная матрица = \n" << expandedMatrix;
+            return GaussMethod(expandedMatrix, determinant);
+        }
+
+        static Vector<double> GaussMethod(const Matrix<double>& expandedMatrix, double& determinant)
+        {
             // удобнее использовать расширенную матрицу, поэтому зафиксируем её
-            Matrix<double> tempMatrix(*_expandedMatrix);
-
+            Matrix<double> tempMatrix(expandedMatrix);
+            determinant = 1;
             // Прямой ход метода Гаусса - преобразование матрицы к треугольному виду
-            for (int i = 0; i < m; i++) // проходим по всем строкам
+            for (int i = 0; i < tempMatrix.getRows(); i++) // проходим по всем строкам
             {
-                *_fout << "i = "<< i << "\n" << std::setw(10) << tempMatrix << "\n";
+                std::cout << "i = "<< i << "\n" << std::setw(10) << tempMatrix << "\n";
                 double coeff = tempMatrix[i][i]; // запоминаем коэффициент по диагонали
-                _determinant *= coeff;
-                std::cout << "\ncoeff=" << coeff << "\n";
-                std::cout << "\n_determinant=" << _determinant << "\n";
+                determinant *= coeff;
+                //std::cout << "\ncoeff=" << coeff << "\n";
+                //std::cout << "\n_determinant=" << _determinant << "\n";
                 
-                for (int j = i; j < m + 1; j++) // проходим по всем элементам текущей строки, включая вектор коэффициентов
+                for (int j = i; j < tempMatrix.getRows() + 1; j++) // проходим по всем элементам текущей строки, включая вектор коэффициентов
                 {
-                    std::cout << '\n' << tempMatrix[i][j] << " / " << coeff << " = ";
+                    //std::cout << '\n' << tempMatrix[i][j] << " / " << coeff << " = ";
                     // если это элемент на диагонали, то он вырождается в единицу, 
                     // а если любой другой на текущей строке, то просто делится на этот коэффициент
                     tempMatrix[i][j] /= coeff; 
-                    std::cout << tempMatrix[i][j] << '\n';
-                    std::cout << '\n' << std::setw(10) << tempMatrix;
+                    //std::cout << tempMatrix[i][j] << '\n';
+                    //std::cout << '\n' << std::setw(10) << tempMatrix;
 
                 }
                 std::cout << '\n' << std::setw(10) << tempMatrix;
-                for (int j = i + 1; j < m; j++)
+                for (int j = i + 1; j < tempMatrix.getRows(); j++)
                 {
                     coeff = tempMatrix[j][i]; // запоминаем коэффициент умножения 
-                    for (int k = i; k < m + 1; k++) // проходим по всем элементам строки, некоторые элементы которой будут обнуляться
+                    for (int k = i; k < tempMatrix.getCols(); k++) // проходим по всем элементам строки, некоторые элементы которой будут обнуляться
                     {
-                        std::cout << '\n' << tempMatrix[j][k] << " - " << coeff << " * " << tempMatrix[i][k] << " = ";
+                        //std::cout << '\n' << tempMatrix[j][k] << " - " << coeff << " * " << tempMatrix[i][k] << " = ";
                         tempMatrix[j][k] -= coeff * tempMatrix[i][k]; // вычитаем из текущей строки верхнюю i-ю строку помноженную на coeff
-                        std::cout << tempMatrix[j][k] << '\n'; // в результате получим некоторое количество нулей под единицей
-                        std::cout << '\n' << std::setw(10) << tempMatrix;
+                        //std::cout << tempMatrix[j][k] << '\n'; // в результате получим некоторое количество нулей под единицей
+                        //std::cout << '\n' << std::setw(10) << tempMatrix;
                     }
-                    std::cout << '\n' << std::setw(10) << tempMatrix;
+                    //std::cout << '\n' << std::setw(10) << tempMatrix;
                 }
             }
             std::cout << "\nМатрица с единичной диагональю: \n" << std::setw(10) << tempMatrix;
-            std::cout << "\nОпределитель матрицы: " << _determinant << "\n";
+            std::cout << "\nОпределитель матрицы: " << determinant << "\n";
 
+
+            Vector<double> result(tempMatrix.getRows());
+            result.transposition();
             // Обратный ход метода Гаусса
-            for (int i = m - 1; i >= 0; i--)
+            for (int i = result.getLength() - 1; i >= 0; i--)
             {
                 double sumCoeff = 0;
-                for (int j = i + 1; j < m; j++) 
+                for (int j = i + 1; j < result.getLength(); j++)
                 {
-                    std::cout << "\n" << tempMatrix[i][j] << " * " << (*x)[j] << " + " << sumCoeff << " = ";
-                    sumCoeff += tempMatrix[i][j] * (*x)[j];
-                    std::cout << sumCoeff << "\n";
+                    //std::cout << "\n" << tempMatrix[i][j] << " * " << result[j] << " + " << sumCoeff << " = ";
+                    sumCoeff += tempMatrix[i][j] * result[j];
+                   // std::cout << sumCoeff << "\n";
                 }
-                std::cout << "result: " << tempMatrix[i][m] << " - " << sumCoeff << " = ";
-                (*x)[i] = tempMatrix[i][m] - sumCoeff;
-                std::cout << (*x)[i] << "\n";
+                //std::cout << "result: " << tempMatrix[i][m] << " - " << sumCoeff << " = ";
+                result[i] = tempMatrix[i][result.getLength()] - sumCoeff;
+                //std::cout << result[i] << "\n";
 
             }
-            *_fout << "\nРезультат:\n" << *x
-                   << "\nОпределитель: " << _determinant << "\n";
-            setResidualVector(*x);
+            return result;
         }
     
         void DecompositionMethod() 
