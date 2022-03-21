@@ -116,6 +116,8 @@ namespace luMath
             (*ResidualVector) = (_A * _x) - _b;
         }
 
+        const Matrix<double>& getInverseMatrix() const {  return *_inverseMatrix;  }
+        const Matrix<double>& getMainMatrix() const { return *A; }
 
         void setInverseMatrixByMethod(Vector<double>(*Method)(const Matrix<double>&, const Vector<double>&, double& determinant))
         {

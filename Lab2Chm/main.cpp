@@ -8,6 +8,7 @@ int main()
     InputData data;
     data.setGaussMethod();
     data.setInverseMatrixByMethod(InputData::GaussMethod);
+    std::cout <<"\nПроверка: A * A' = \n" <<std::fixed <<std::setprecision(2) <<std::setw(10) << data.getInverseMatrix() * data.getMainMatrix();
     //data.DecompositionMethod();
     //data.OrtogonalizationMethod();
     //data.SimpleIterationMethod();

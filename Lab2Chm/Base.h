@@ -202,7 +202,7 @@ namespace luMath
 				throw std::logic_error("\nОперация умножения невозможна с объектами: id:" + std::to_string(m_id)
 					+ "; id:" + std::to_string(base.m_id));
 
-			T temp;
+			T temp = 0;
 			T* new_array = new T[m_rows * base.m_cols];
 			for (unsigned iii = 0; iii < m_rows; ++iii)
 				for (unsigned jjj = 0; jjj < base.m_cols; ++jjj)
