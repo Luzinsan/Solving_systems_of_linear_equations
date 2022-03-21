@@ -55,17 +55,21 @@ namespace luMath
         } while (true);
         return eps;
     }
-
-    double unit_matrix_initer(size_t m, size_t n, size_t r, size_t c)
+    
+    template <class T>
+    T unit_matrix_initer(size_t m, size_t n, size_t r, size_t c)
     {
         return r == c;
     }
-    double invert_unit_matrix_initer(size_t m, size_t n, size_t r, size_t c)
+    
+    template <class T>
+    T invert_unit_matrix_initer(size_t m, size_t n, size_t r, size_t c)
     {
         return (m - 1 - r) == c;
     }
 
-    double zero_matrix_initer(size_t m, size_t n, size_t r, size_t c)
+    template <class T>
+    T zero_matrix_initer(size_t m, size_t n, size_t r, size_t c)
     {
         return 0;
     }

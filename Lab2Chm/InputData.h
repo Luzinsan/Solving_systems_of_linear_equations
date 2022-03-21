@@ -8,11 +8,14 @@
 
 namespace luMath
 {
-    double invert_unit_matrix_initer(size_t m, size_t n, size_t r, size_t c);
+    template <class T>
+    T invert_unit_matrix_initer(size_t m, size_t n, size_t r, size_t c);
 
-    double unit_matrix_initer(size_t m, size_t n, size_t r, size_t c);
+    template <class T>
+    T unit_matrix_initer(size_t m, size_t n, size_t r, size_t c);
 
-    double zero_matrix_initer(size_t m, size_t n, size_t r, size_t c);
+    template <class T>
+    T zero_matrix_initer(size_t m, size_t n, size_t r, size_t c);
 
     char getSymbol(std::initializer_list<char> list,
         std::string notification_message = "",
@@ -23,24 +26,25 @@ namespace luMath
         std::string notification_message = "",
         std::string error_message = "Недопустимое значение, попробуйте ещё раз.\n->");
 
+    template <class T>
     class InputData
     {
     private:
         std::ifstream* _fin;
         std::ofstream* _fout;
         // основные данные
-        Matrix<double>* _expandedMatrix;
-        Matrix<double>* _inverseMatrix;
-        Matrix<double>* A;
-        Vector<double>* b;
-        Vector<double>* x;
+        Matrix<T>* _expandedMatrix;
+        Matrix<T>* _inverseMatrix;
+        Matrix<T>* A;
+        Vector<T>* b;
+        Vector<T>* x;
         int m; // размерность квадратной матрицы
         // проверка и точность
-        Vector<double>* ResidualVector;
+        Vector<T>* ResidualVector;
         
         int _type;
-        double _determinant = 1;
-        double _eps = 1e-12;
+        T _determinant = 1;
+        T _eps = 1e-12;
         int _NAfterComma;
     public:
 
@@ -53,38 +57,38 @@ namespace luMath
             *_fin >> m;
             std::cout << "\n\tПорядок матрицы: " << m;
 
-            double* array = new double[m * (m + 1)];
+            T* array = new T[m * (m + 1)];
             for (int i = 0; i < (m + 1) * m; i++)
                 *_fin >> array[i];
 
-            _expandedMatrix = new Matrix<double>(m, m + 1, array);
-            _inverseMatrix = new Matrix<double>(m);
+            _expandedMatrix = new Matrix<T>(m, m + 1, array);
+            _inverseMatrix = new Matrix<T>(m);
             delete[] array;
             std::cout << "\n\tКоэффициенты считанной матрицы и вектор свободных коэффициентов (последний стоблик):\n\n" << *_expandedMatrix;
             setA(*_expandedMatrix, m);
             setB(*_expandedMatrix, m);
-            x = new Vector<double>(m);
+            x = new Vector<T>(m);
             (*x).transposition();
 
-            ResidualVector = new Vector<double>(m);
+            ResidualVector = new Vector<T>(m);
             (*ResidualVector).transposition();
             
             delete _fin;
         }
 
         // инициализация квадратной матрицы
-        void setA(const Matrix<double>& matrix, size_t size) 
+        void setA(const Matrix<T>& matrix, size_t size) 
         {
-            A = new Matrix<double>(size);
+            A = new Matrix<T>(size);
             for (int i = 0; i < size; i++)
                 for (int j = 0; j < size; j++)
                     (*A)[i][j] = matrix[i][j];
         }
 
         // инициализация вектора свободных коэффициентов - initialization of the vector of free coefficients
-        void setB(const Matrix<double>& matrix, size_t size) // size - number of rows 
+        void setB(const Matrix<T>& matrix, size_t size) // size - number of rows 
         {
-            b = new Vector<double>(size);
+            b = new Vector<T>(size);
             for (int i = 0; i < size; i++)
                 (*b)[i] = matrix[i][size];
             (*b).transposition();
@@ -102,9 +106,9 @@ namespace luMath
         }
   
 
-        Matrix<double>& getExpandedMatrix() { return *_expandedMatrix; }
+        Matrix<T>& getExpandedMatrix() { return *_expandedMatrix; }
         //вектор невязки
-        void setResidualVector(const Matrix<double>& _A, const Vector<double>& _x, const Vector<double>& _b)
+        void setResidualVector(const Matrix<T>& _A, const Vector<T>& _x, const Vector<T>& _b)
         {
             *_fout << "\nВектор невязки e*:"
                 << "\nA:\n" << _A
@@ -116,16 +120,16 @@ namespace luMath
             (*ResidualVector) = (_A * _x) - _b;
         }
 
-        const Matrix<double>& getInverseMatrix() const {  return *_inverseMatrix;  }
-        const Matrix<double>& getMainMatrix() const { return *A; }
+        const Matrix<T>& getInverseMatrix() const {  return *_inverseMatrix;  }
+        const Matrix<T>& getMainMatrix() const { return *A; }
 
-        void setInverseMatrixByMethod(Vector<double>(*Method)(const Matrix<double>&, const Vector<double>&, double& determinant))
+        void setInverseMatrixByMethod(Vector<T>(*Method)(const Matrix<T>&, const Vector<T>&, T& determinant))
         {
-            Vector<Vector<double>> x_temp(m);
-            Vector<Vector<double>> E(m); 
+            Vector<Vector<T>> x_temp(m);
+            Vector<Vector<T>> E(m); 
             for (int i = 0; i < m; i++)
             {
-                E[i] = Vector<double>(m);
+                E[i] = Vector<T>(m);
                 for (int j = 0; j < m; j++)
                     if (i == j)
                         E[i][j] = 1;
@@ -156,9 +160,9 @@ namespace luMath
             *_fout << "\nЕвклидова норма вектора невязки: " << (*ResidualVector).getModule() << "\n";
         }
 
-        static Vector<double> GaussMethod(const Matrix<double>& _A, const Vector<double>& _b, double& determinant)
+        static Vector<T> GaussMethod(const Matrix<T>& _A, const Vector<T>& _b, T& determinant)
         {
-            Matrix<double> expandedMatrix(_A.getRows(), _A.getCols() + 1);
+            Matrix<T> expandedMatrix(_A.getRows(), _A.getCols() + 1);
             for (int i = 0; i < expandedMatrix.getRows(); i++)
                 for (int j = 0; j < expandedMatrix.getCols(); j++)
                     if (j == expandedMatrix.getCols() - 1)
@@ -169,16 +173,16 @@ namespace luMath
             return GaussMethod(expandedMatrix, determinant);
         }
 
-        static Vector<double> GaussMethod(const Matrix<double>& expandedMatrix, double& determinant)
+        static Vector<T> GaussMethod(const Matrix<T>& expandedMatrix, T& determinant)
         {
             // удобнее использовать расширенную матрицу, поэтому зафиксируем её
-            Matrix<double> tempMatrix(expandedMatrix);
+            Matrix<T> tempMatrix(expandedMatrix);
             determinant = 1;
             // Прямой ход метода Гаусса - преобразование матрицы к треугольному виду
             for (int i = 0; i < tempMatrix.getRows(); i++) // проходим по всем строкам
             {
                 std::cout << "i = "<< i << "\n" << std::setw(10) << tempMatrix << "\n";
-                double coeff = tempMatrix[i][i]; // запоминаем коэффициент по диагонали
+                T coeff = tempMatrix[i][i]; // запоминаем коэффициент по диагонали
                 determinant *= coeff;
                 //std::cout << "\ncoeff=" << coeff << "\n";
                 //std::cout << "\n_determinant=" << _determinant << "\n";
@@ -211,12 +215,12 @@ namespace luMath
             std::cout << "\nОпределитель матрицы: " << determinant << "\n";
 
 
-            Vector<double> result(tempMatrix.getRows());
+            Vector<T> result(tempMatrix.getRows());
             result.transposition();
             // Обратный ход метода Гаусса
             for (int i = result.getLength() - 1; i >= 0; i--)
             {
-                double sumCoeff = 0;
+                T sumCoeff = 0;
                 for (int j = i + 1; j < result.getLength(); j++)
                 {
                     //std::cout << "\n" << tempMatrix[i][j] << " * " << result[j] << " + " << sumCoeff << " = ";
@@ -231,11 +235,12 @@ namespace luMath
             return result;
         }
     
+        
         void DecompositionMethod() 
         {
             // Раскладываем матрицу _matrix на матрицы B и C так, что A = B * C
-            Matrix<double>* B = new Matrix<double>(m, unit_matrix_initer);
-            Matrix<double>* C = new Matrix<double>(m, unit_matrix_initer);
+            Matrix<T>* B = new Matrix<T>(m, unit_matrix_initer<T>);
+            Matrix<T>* C = new Matrix<T>(m, unit_matrix_initer<T>);
             std::cout << "B: \n" << *B << "\nC:\n" << *C << "\n";
             
             for (int j = 0; j < m; j++)
@@ -243,7 +248,7 @@ namespace luMath
                 // b_ij = a_ij - sum(b_ik*c_kj)
                 for (int i = j; i < m; i++)// проходим по элементам столбца матрицы B
                 {
-                    double sumCoeff = 0;
+                    T sumCoeff = 0;
                     for (int k = 0; k < j - 1; k++)
                     {
                         std::cout << "\n" << (*B)[i][k] << " * " << (*C)[k][j] << " + " << sumCoeff << " = ";
@@ -264,7 +269,7 @@ namespace luMath
                 // c_ij = (1/b_ii)*(a_ij - sum(b_ik*c_kj))
                 for (int i = j + 1; i < m; i++)
                 {
-                    double sumCoeff = 0;
+                    T sumCoeff = 0;
                     for (int k = 0; k < i - 1; k++)
                     {
                         std::cout << "\n" << (*B)[j][k] << " * " << (*C)[k][i] << " + " << sumCoeff << " = ";
@@ -287,9 +292,10 @@ namespace luMath
         
         }
     
+        
         void OrtogonalizationMethod() 
         {
-            Matrix<double> A(m+1, zero_matrix_initer);
+            Matrix<T> A(m+1, zero_matrix_initer<T>);
             for (int i = 0; i < m; i++)
             {
                 for (int j = 0; j < m + 1; j++)
