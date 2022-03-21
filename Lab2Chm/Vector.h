@@ -136,6 +136,13 @@ namespace luMath
 			return *this;
 		}
 
+		const Vector<T>& operator=(int x) noexcept 
+		{
+			for (unsigned iii = 0; iii < m_length; iii++)
+				m_item[iii] = x;
+			return *this;
+		}
+
 		const Vector<T>& operator=(const Vector<T>& fromVector) noexcept
 		{
 			Base<T>::operator=(fromVector);
