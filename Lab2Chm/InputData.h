@@ -8,13 +8,8 @@
 
 namespace luMath
 {
-    //template <class T>
     double invert_unit_matrix_initer(size_t m, size_t n, size_t r, size_t c);
-
-    //template <class T>
     double unit_matrix_initer(size_t m, size_t n, size_t r, size_t c);
-
-    //template <class T>
     double zero_matrix_initer(size_t m, size_t n, size_t r, size_t c);
 
     char getSymbol(std::initializer_list<char> list,
@@ -107,6 +102,7 @@ namespace luMath
   
 
         Matrix<T>& getExpandedMatrix() { return *_expandedMatrix; }
+        
         //вектор невязки
         void setResidualVector(const Matrix<T>& _A, const Vector<T>& _x, const Vector<T>& _b)
         {
@@ -150,20 +146,14 @@ namespace luMath
             *_fout << "\nОбратная матрица:\n" << std::setw(10) << (*_inverseMatrix);
         }
 
-        void setGaussMethod() 
+        void setMethod(Vector<T>(*Method)(const Matrix<T>&, const Vector<T>&, T& determinant))
         {
-            *_fout << "\nМетод Гаусса:\n";
-            (*x) = GaussMethod(*_expandedMatrix, _determinant);
-            *_fout << "\nРезультат:\n"   << (*x)
-                   << "\nОпределитель: " << _determinant << "\n";
-            setResidualVector(*A, *x, *b);
-            *_fout << "\nЕвклидова норма вектора невязки: " << (*ResidualVector).getModule() << "\n";
-        }
-
-        void setDecompositionMethod()
-        {
-            *_fout << "\nМетод Декомпозиции:\n";
-            (*x) = DecompositionMethod(*A, *b, _determinant);
+            if(Method == InputData::GaussMethod)
+                *_fout << "\nМетод Гаусса:\n";
+            else if(Method == InputData::DecompositionMethod)
+                *_fout << "\nМетод Декомпозиции:\n";
+               
+            (*x) = Method(*A, *b, _determinant);
             *_fout << "\nРезультат:\n" << (*x)
                 << "\nОпределитель: " << _determinant << "\n";
             setResidualVector(*A, *x, *b);
@@ -221,8 +211,8 @@ namespace luMath
                     //std::cout << '\n' << std::setw(10) << tempMatrix;
                 }
             }
-            std::cout << "\nМатрица с единичной диагональю: \n" << std::setw(10) << tempMatrix;
-            std::cout << "\nОпределитель матрицы: " << determinant << "\n";
+            //std::cout << "\nМатрица с единичной диагональю: \n" << std::setw(10) << tempMatrix;
+            //std::cout << "\nОпределитель матрицы: " << determinant << "\n";
 
 
             Vector<T> result(tempMatrix.getRows());
@@ -277,9 +267,9 @@ namespace luMath
                     T sumCoeff = 0;
                     for (int k = 0; k <= j - 1; k++)
                     {
-                        std::cout << "\n" << B[j][k] << " * " << C[k][i] << " + " << sumCoeff << " = ";
+                        //std::cout << "\n" << B[j][k] << " * " << C[k][i] << " + " << sumCoeff << " = ";
                         sumCoeff += B[j][k] * C[k][i];
-                        std::cout << sumCoeff;
+                        //std::cout << sumCoeff;
 
                     }
                     //std::cout << "\n(1 / " << B[j][j] << ") * (" << (*A)[j][i] << " - " << sumCoeff << ") = ";
@@ -290,7 +280,7 @@ namespace luMath
                 //std::cout << "\nОбработали строку матрицы C: " << j << "\n";
             }
 
-            std::cout << "\nB * C: \n" << std::setw(10) << B << "\n*\n" << std::setw(10) << C << "\n" << std::setw(10) << B*C << "\n";
+            //std::cout << "\nB * C: \n" << std::setw(10) << B << "\n*\n" << std::setw(10) << C << "\n" << std::setw(10) << B*C << "\n";
             Vector<T> y(m);
             determinant = 1;
             for (int i = 0; i < m; i++)
