@@ -6,13 +6,41 @@ int main()
 {
     setlocale(LC_ALL, "Rus");
     InputData<double> data;
-    data.setMethod(InputData<double>::GaussMethod);
-    data.setInverseMatrixByMethod(InputData<double>::GaussMethod);
-    std::cout <<"\nПроверка: A * A' = \n" <<std::fixed <<std::setprecision(2) <<std::setw(10) << data.getInverseMatrix() * data.getMainMatrix();
+
+    switch (data.getMethod()) 
+    {
+    case InputData<double>::METHOD::GAUSS:
+        switch (data.getTask())
+        {
+        case InputData<double>::TASK::ROOT:
+            data.getRoot(InputData<double>::GaussMethod);
+            break;
+        case InputData<double>::TASK::DETERMINANT:
+            data.getDeterminant();
+            break;
+        case InputData<double>::TASK::INVERS:
+            data.setInverseMatrixByMethod(InputData<double>::GaussMethod);
+            break;
+        }
+        break;
+    case InputData<double>::METHOD::DECOMPOSOTION:
+        switch (data.getTask())
+        {
+        case InputData<double>::TASK::ROOT:
+            data.getRoot(InputData<double>::DecompositionMethod);
+            break;
+        case InputData<double>::TASK::DETERMINANT:
+            data.getDeterminant();
+            break;
+        case InputData<double>::TASK::INVERS:
+            data.setInverseMatrixByMethod(InputData<double>::DecompositionMethod);
+            break;
+        }
+        break;
+    }
+    
    
-    data.setMethod(InputData<double>::DecompositionMethod);
-    data.setInverseMatrixByMethod(InputData<double>::DecompositionMethod);
-    std::cout << "\nПроверка: A * A' = \n" << std::fixed << std::setprecision(2) << std::setw(10) << data.getInverseMatrix() * data.getMainMatrix();
+    
     
     //data.OrtogonalizationMethod();
     //data.SimpleIterationMethod();
