@@ -112,6 +112,15 @@ namespace luMath
 			return m_id;
 		}
 
+		T getModule() const
+		{
+			T _module = 0;
+			for (unsigned iii = 0; iii < m_cols*m_rows; ++iii)
+				_module += m_item[iii] * m_item[iii];
+			_module = sqrt(_module);
+			return _module;
+		}
+
 		const Base<T>& operator=(const Base<T>& base) throw()
 		{
 			if (this == &base)
