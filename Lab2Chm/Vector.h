@@ -79,18 +79,11 @@ namespace luMath
 		{
 			return m_length;
 		}
-		T getModule() const
-		{
-			T _module = 0;
-			for (unsigned iii = 0; iii < m_length; ++iii)
-				_module += m_item[iii] * m_item[iii];
-			_module = sqrt(_module);
-			return _module;
-		}
+		
 
 		const Vector& normVec()
 		{
-			T _module = getModule();
+			T _module = Base<T>::getModule();
 			for (unsigned iii = 0; iii < m_length; ++iii)
 				m_item[iii] /= _module;
 			return *this;
