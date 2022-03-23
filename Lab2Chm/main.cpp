@@ -37,12 +37,34 @@ int main()
             break;
         }
         break;
+    case InputData<double>::METHOD::SIMPLEITERATION:
+        switch (data.getTask())
+        {
+        case InputData<double>::TASK::ROOT:
+            data.getRoot(InputData<double>::SimpleIterationMethod);
+            break;
+        case InputData<double>::TASK::DETERMINANT:
+            data.getDeterminant();
+            break;
+        case InputData<double>::TASK::INVERS:
+            data.setInverseMatrixByMethod(InputData<double>::SimpleIterationMethod);
+            break;
+        }
+        break;
+    case InputData<double>::METHOD::SEIDEL:
+        switch (data.getTask())
+        {
+        case InputData<double>::TASK::ROOT:
+            data.getRoot(InputData<double>::SeidelMethod);
+            break;
+        case InputData<double>::TASK::DETERMINANT:
+            data.getDeterminant();
+            break;
+        case InputData<double>::TASK::INVERS:
+            data.setInverseMatrixByMethod(InputData<double>::SeidelMethod);
+            break;
+        }
+        break;
     }
-    
-   
-    
-    
-    //data.OrtogonalizationMethod();
-    //data.SimpleIterationMethod();
     return 0;
 }

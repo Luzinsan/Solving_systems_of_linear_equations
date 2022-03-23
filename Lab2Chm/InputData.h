@@ -28,7 +28,9 @@ namespace luMath
         enum class METHOD
         {
             GAUSS=1,
-            DECOMPOSOTION
+            DECOMPOSOTION,
+            SIMPLEITERATION,
+            SEIDEL
         };
 
         enum class TASK
@@ -184,10 +186,12 @@ namespace luMath
         }
         void getRoot(Vector<T>(*Method)(const Matrix<T>&, const Vector<T>&, T& determinant, std::ofstream&))
         {
-            if(Method == InputData::GaussMethod)
+            if (Method == InputData::GaussMethod)
                 *_fout << "\nМетод Гаусса:\n";
-            else if(Method == InputData::DecompositionMethod)
+            else if (Method == InputData::DecompositionMethod)
                 *_fout << "\nМетод Декомпозиции:\n";
+            else if (Method == InputData::SimpleIterationMethod)
+                *_fout << "\nМетод Простой Итерации";
                
             setRoot(Method);
             *_fout << "\nРезультат:\n" << (*x);
@@ -206,6 +210,9 @@ namespace luMath
                     break;
                 case METHOD::DECOMPOSOTION:
                     setRoot(InputData::DecompositionMethod);
+                    break;
+                case METHOD::SIMPLEITERATION:
+                    setRoot(InputData::SimpleIterationMethod);
                     break;
                 }
             }
@@ -365,53 +372,139 @@ namespace luMath
 
         }
     
-        
-        void OrtogonalizationMethod() 
+
+        static bool converge(const Matrix<T>& A, std::ofstream& out = std::cout)
         {
-            Matrix<T> A(m+1, zero_matrix_initer);
-            for (int i = 0; i < m; i++)
+            int n = A.getCols();
+            double sum = 0;
+            for (int i = 0; i < n; i++)
             {
-                for (int j = 0; j < m + 1; j++)
+                sum = 0;
+                for (int j = 0; j < n; j++)
+                    if(i!=j)
+                        sum += A[i][j];
+                if (abs(A[i][i]) <= abs(sum))
                 {
-                    /*if (j == m)
-                        A[i][j] = -(*A)[i][j];
-                    else
-                        A[i][j] = (*_matrix)[i][j];*/
+                    out << "\n\tМатрица не сходится.\n";
+                    return false;
                 }
-                std::cout << "\nA = \n" << A;
             }
-            A[m][m] = 1;
-            std::cout << "\nA = \n" << A;
-        
-        
+            return true;
         }
 
-        void SimpleIterationMethod() 
+        static bool convergeBySeidel(const Matrix<T>& A, std::ofstream& out = std::cout)
         {
+            int n = A.getCols();
+            double sum = 0;
+            bool flag = true;
+            for (int i = 0; i < n; i++)
+            {
+                sum = 0;
+                for (int j = 0; j < n; j++)
+                    if (i != j)
+                        sum += A[i][j];
+                if (abs(A[i][i]) <= abs(sum))
+                {
+                    //out << "\n\tМатрица не сходится.\n";
+                    flag = false;
+                }
+            }
+            Matrix<double> A_t = A.transposition();
+
+            return flag /*|| (A_t*A)*/;
+        }
+
+        static Vector<T> SimpleIterationMethod(const Matrix<T>& A, const Vector<T>& B, T& determinant, std::ofstream& out = std::cout)
+        {
+            int m = A.getRows();
             Matrix<double> a(m);
             Vector<double> b(m);
+            b.transposition();
             
-
+            if (!converge(A,out))
+                return B;
+            
             Vector<double> x0(b);
+            x0.transposition();
             Vector<double> x1(b);
-            Vector<double> mod(m);
+            x1.transposition();
+
+            for (int i = 0; i < m; i++)
+            {
+                b[i] = B[i] / A[i][i];
+                for (int j = 0; j < m; j++)
+                    if (i == j)
+                        a[i][j] = 0;
+                    else
+                        a[i][j] = -A[i][j] / A[i][i];
+            }
+            out << "\nb=\n" << std::setw(10) << b << "\na=\n" << std::setw(10) << a;
+            x0 = b;
+            x1 = x0;
             do 
             {
+                x0 = x1;
+                x1 = b + a * x1;
+                //std::cout << "\nx0 = \n" << x0 << "\nx1 = \n" << x1;
+                //std::cout << "\nx1-x0 = \n" << x1 - x0 
+                //   << "\n" << (x1 - x0).getModule()<< "<->"<< (1 - a.getModule()) / a.getModule() * 0.000001;
+            } while ((x1-x0).getModule() >= abs( (1-a.getModule()) / a.getModule() * 0.000001) );
+            return x1;
+        }
+
+        static Vector<T> SeidelMethod(const Matrix<T>& A, const Vector<T>& B, T& determinant, std::ofstream& out = std::cout)
+        {
+            int m = A.getRows();
+            Matrix<double> a(m);
+            Vector<double> b(m);
+            b.transposition();
+
+            if (!convergeBySeidel(A, out))
+                return B;
+
+            Vector<double> x0(b);
+            x0.transposition();
+            Vector<double> x1(b);
+            x1.transposition();
+
+            for (int i = 0; i < m; i++)
+            {
+                b[i] = B[i] / A[i][i];
+                for (int j = 0; j < m; j++)
+                    if (i == j)
+                        a[i][j] = 0;
+                    else
+                        a[i][j] = -A[i][j] / A[i][i];
+            }
+            out << "\nb=\n" << std::setw(10) << b << "\na=\n" << std::setw(10) << a;
+            x0 = b;
+            x1 = x0;
+            do
+            {
+                x0 = x1;
                 for (int i = 0; i < m; i++)
                 {
-                    b[i] = (*A)[i][m - 1] / (*A)[i][i];
-                    for (int j = 0; j < m; j++)
-                        if (i == j)
-                            a[i][j] = 0;
-                        else
-                            a[i][j] = -(*A)[i][j] / (*A)[i][i];
-                    std::cout << "\nb=\n" << std::setw(10) << b << "\na=\n" << std::setw(10) << a;
+                    double sum1 = 0;
+                    for (int j = 0; j < i - 1; j++)
+                        sum1 += a[i][j] * x1[j];
+                    double sum2 = 0;
+                    for (int j = i; j < m; j++)
+                        sum2 += a[i][j] * x0[j];
+                    x1[i] = b[i] + sum1 + sum2;
+                    
                 }
-                x1 = b + a * x0;
-                 mod = x1 - x0;
-            } while (mod.getModule() );
-
+                x1 = b + a * x1;
+                //std::cout << "\nx0 = \n" << x0 << "\nx1 = \n" << x1;
+                //std::cout << "\nx1-x0 = \n" << x1 - x0 
+                //   << "\n" << (x1 - x0).getModule()<< "<->"<< (1 - a.getModule()) / a.getModule() * 0.000001;
+            } while ((x1 - x0).getModule() >= abs((1 - a.getModule()) / a.getModule() * 0.000001));
+            return x1;
+        
+        
+        
+        
         }
+       
     };
 }
 #endif
