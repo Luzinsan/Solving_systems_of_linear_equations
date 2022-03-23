@@ -119,6 +119,8 @@ namespace luMath
             //std::cout << "Конструктор #12 -> Матрица №" << m_id << std::endl;
         }
 
+
+
         virtual ~Matrix() noexcept
         {
             //std::cout << "Деструктор матрицы №" << m_id << std::endl;
@@ -131,6 +133,21 @@ namespace luMath
         unsigned getCols() const
         {
             return m_cols;
+        }
+
+        Matrix<T> transposition() const
+        {
+            Matrix<T> Tran(*this);
+            for (int i = 0; i < m_rows; i++)
+                for (int j = i+1; j < m_cols ; j++) 
+                {
+                    std::cout << "\n" << Tran.m_item[i * m_cols + j] << "<->" << Tran.m_item[j * m_cols + i];
+                    
+                    std::swap(Tran.m_item[i * m_cols + j], Tran.m_item[j * m_cols + i]);
+                    std::cout << "\nTran=\n" << Tran << "\n";
+                }
+            std::cout << "\n" << Tran;
+            return Tran;
         }
 
         Row<T> operator[](int row)
