@@ -139,14 +139,8 @@ namespace luMath
         {
             Matrix<T> Tran(*this);
             for (int i = 0; i < m_rows; i++)
-                for (int j = i+1; j < m_cols ; j++) 
-                {
-                    std::cout << "\n" << Tran.m_item[i * m_cols + j] << "<->" << Tran.m_item[j * m_cols + i];
-                    
-                    std::swap(Tran.m_item[i * m_cols + j], Tran.m_item[j * m_cols + i]);
-                    std::cout << "\nTran=\n" << Tran << "\n";
-                }
-            std::cout << "\n" << Tran;
+                for (int j = i+1; j < m_cols ; j++)  
+                    std::swap(Tran.m_item[i * m_cols + j], Tran.m_item[j * m_cols + i]); 
             return Tran;
         }
 
