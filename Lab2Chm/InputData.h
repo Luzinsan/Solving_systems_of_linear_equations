@@ -16,12 +16,12 @@ namespace luMath
 
     char getSymbol(std::initializer_list<char> list,
         std::string notification_message = "",
-        std::string error_message = "Недопустимое значение, попробуйте ещё раз.\n->");
+        std::string error_message = "РќРµРґРѕРїСѓСЃС‚РёРјРѕРµ Р·РЅР°С‡РµРЅРёРµ, РїРѕРїСЂРѕР±СѓР№С‚Рµ РµС‰С‘ СЂР°Р·.\n->");
 
     double getDouble(double min = -DBL_MAX,
         double max = DBL_MAX,
         std::string notification_message = "",
-        std::string error_message = "Недопустимое значение, попробуйте ещё раз.\n->");
+        std::string error_message = "РќРµРґРѕРїСѓСЃС‚РёРјРѕРµ Р·РЅР°С‡РµРЅРёРµ, РїРѕРїСЂРѕР±СѓР№С‚Рµ РµС‰С‘ СЂР°Р·.\n->");
 
     template <class T>
     class InputData
@@ -45,15 +45,15 @@ namespace luMath
     private:
        
         std::ofstream* _fout;
-        // основные данные
+        // РѕСЃРЅРѕРІРЅС‹Рµ РґР°РЅРЅС‹Рµ
         Matrix<T>* _expandedMatrix;
         Matrix<T>* _inverseMatrix;
         Matrix<T>* A;
         Vector<T>* b;
         Vector<T>* x;
-        int m; // размерность квадратной матрицы
+        int m; // СЂР°Р·РјРµСЂРЅРѕСЃС‚СЊ РєРІР°РґСЂР°С‚РЅРѕР№ РјР°С‚СЂРёС†С‹
 
-        // проверка и точность
+        // РїСЂРѕРІРµСЂРєР° Рё С‚РѕС‡РЅРѕСЃС‚СЊ
         Vector<T>* ResidualVector;
         Matrix<T>* ResidualMatrix;
 
@@ -70,13 +70,13 @@ namespace luMath
             std::ifstream* _fin  = new std::ifstream("input.txt");
             _fout = new std::ofstream("output.txt");
             int c;
-            *_fin >> c; // считывается метод
+            *_fin >> c; // СЃС‡РёС‚С‹РІР°РµС‚СЃСЏ РјРµС‚РѕРґ
             _method = static_cast<METHOD>(c);
-            *_fin >> c; // считывается тип задачи
+            *_fin >> c; // СЃС‡РёС‚С‹РІР°РµС‚СЃСЏ С‚РёРї Р·Р°РґР°С‡Рё
             _task = static_cast<TASK>(c);
            
             *_fin >> m;
-            std::cout << "\n\tПорядок матрицы: " << m;
+            std::cout << "\n\tРџРѕСЂСЏРґРѕРє РјР°С‚СЂРёС†С‹: " << m;
 
             T* array = new T[m * (m + 1)];
             for (int i = 0; i < (m + 1) * m; i++)
@@ -87,7 +87,7 @@ namespace luMath
             _expandedMatrix = new Matrix<T>(m, m + 1, array);
             _inverseMatrix = new Matrix<T>(m);
             delete[] array;
-            std::cout << "\n\tКоэффициенты считанной матрицы и вектор свободных коэффициентов (последний стоблик):\n\n" << *_expandedMatrix;
+            std::cout << "\n\tРљРѕСЌС„С„РёС†РёРµРЅС‚С‹ СЃС‡РёС‚Р°РЅРЅРѕР№ РјР°С‚СЂРёС†С‹ Рё РІРµРєС‚РѕСЂ СЃРІРѕР±РѕРґРЅС‹С… РєРѕСЌС„С„РёС†РёРµРЅС‚РѕРІ (РїРѕСЃР»РµРґРЅРёР№ СЃС‚РѕР±Р»РёРє):\n\n" << *_expandedMatrix;
             setA(*_expandedMatrix, m);
             setB(*_expandedMatrix, m);
             x = new Vector<T>(m);
@@ -113,7 +113,7 @@ namespace luMath
         METHOD getMethod() { return _method; }
         TASK getTask() { return _task;  }
 
-        // инициализация квадратной матрицы
+        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РєРІР°РґСЂР°С‚РЅРѕР№ РјР°С‚СЂРёС†С‹
         void setA(const Matrix<T>& matrix, size_t size) 
         {
             A = new Matrix<T>(size);
@@ -122,7 +122,7 @@ namespace luMath
                     (*A)[i][j] = matrix[i][j];
         }
 
-        // инициализация вектора свободных коэффициентов - initialization of the vector of free coefficients
+        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РІРµРєС‚РѕСЂР° СЃРІРѕР±РѕРґРЅС‹С… РєРѕСЌС„С„РёС†РёРµРЅС‚РѕРІ - initialization of the vector of free coefficients
         void setB(const Matrix<T>& matrix, size_t size) // size - number of rows 
         {
             b = new Vector<T>(size);
@@ -146,10 +146,10 @@ namespace luMath
 
         Matrix<T>& getExpandedMatrix() { return *_expandedMatrix; }
         
-        //вектор невязки
+        //РІРµРєС‚РѕСЂ РЅРµРІСЏР·РєРё
         void setResidualVector(const Matrix<T>& _A, const Vector<T>& _x, const Vector<T>& _b)
         {
-            *_fout << "\nВектор невязки e*:\n" << (_A * _x) - _b;
+            *_fout << "\nР’РµРєС‚РѕСЂ РЅРµРІСЏР·РєРё e*:\n" << (_A * _x) - _b;
             (*ResidualVector) = (_A * _x) - _b;
         }
 
@@ -179,11 +179,11 @@ namespace luMath
             for (int i = 0; i < m; i++)
                 for (int j = 0; j < m; j++)
                     (*_inverseMatrix)[i][j] = x_temp[j][i];
-            *_fout << "\nОбратная матрица:\n" << std::setw(10) << (*_inverseMatrix);
+            *_fout << "\nРћР±СЂР°С‚РЅР°СЏ РјР°С‚СЂРёС†Р°:\n" << std::setw(10) << (*_inverseMatrix);
             
             *ResidualMatrix = (*_inverseMatrix) * (*A) - Matrix<double>(m, unit_matrix_initer);
-            *_fout << "\nМатрица невязки:\n"  << std::setprecision(5) << std::setw(15) << *ResidualMatrix;
-            *_fout << "\nЕвклидова норма матрицы невязки: " << (*ResidualMatrix).getModule() << "\n";
+            *_fout << "\nРњР°С‚СЂРёС†Р° РЅРµРІСЏР·РєРё:\n"  << std::setprecision(5) << std::setw(15) << *ResidualMatrix;
+            *_fout << "\nР•РІРєР»РёРґРѕРІР° РЅРѕСЂРјР° РјР°С‚СЂРёС†С‹ РЅРµРІСЏР·РєРё: " << (*ResidualMatrix).getModule() << "\n";
                
         }
 
@@ -195,18 +195,18 @@ namespace luMath
         void getRoot(Vector<T>(*Method)(const Matrix<T>&, const Vector<T>&, T& determinant, std::ofstream&))
         {
             if (Method == InputData::GaussMethod)
-                *_fout << "\nМетод Гаусса:\n";
+                *_fout << "\nРњРµС‚РѕРґ Р“Р°СѓСЃСЃР°:\n";
             else if (Method == InputData::DecompositionMethod)
-                *_fout << "\nМетод Декомпозиции:\n";
+                *_fout << "\nРњРµС‚РѕРґ Р”РµРєРѕРјРїРѕР·РёС†РёРё:\n";
             else if (Method == InputData::SimpleIterationMethod)
-                *_fout << "\nМетод Простой Итерации\n";
+                *_fout << "\nРњРµС‚РѕРґ РџСЂРѕСЃС‚РѕР№ РС‚РµСЂР°С†РёРё\n";
             else if (Method == InputData::SeidelMethod)
-                *_fout << "\nМетод Зейделя\n";
+                *_fout << "\nРњРµС‚РѕРґ Р—РµР№РґРµР»СЏ\n";
                
             setRoot(Method);
-            *_fout << "\nРезультат:\n" << (*x);
+            *_fout << "\nР РµР·СѓР»СЊС‚Р°С‚:\n" << (*x);
             setResidualVector(*A, *x, *b);
-            *_fout << "\nЕвклидова норма вектора невязки: " << (*ResidualVector).getModule() << "\n";
+            *_fout << "\nР•РІРєР»РёРґРѕРІР° РЅРѕСЂРјР° РІРµРєС‚РѕСЂР° РЅРµРІСЏР·РєРё: " << (*ResidualVector).getModule() << "\n";
         }
 
         T getDeterminant() 
@@ -226,7 +226,7 @@ namespace luMath
                     break;
                 }
             }
-            *_fout << "\nОпределитель: " << _determinant << "\n";
+            *_fout << "\nРћРїСЂРµРґРµР»РёС‚РµР»СЊ: " << _determinant << "\n";
             return _determinant;
         }
 
@@ -245,36 +245,36 @@ namespace luMath
 
         static Vector<T> GaussMethod(const Matrix<T>& expandedMatrix, T& determinant, std::ofstream& out=std::cout)
         {
-            // удобнее использовать расширенную матрицу, поэтому зафиксируем её
+            // СѓРґРѕР±РЅРµРµ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ СЂР°СЃС€РёСЂРµРЅРЅСѓСЋ РјР°С‚СЂРёС†Сѓ, РїРѕСЌС‚РѕРјСѓ Р·Р°С„РёРєСЃРёСЂСѓРµРј РµС‘
             Matrix<T> tempMatrix(expandedMatrix);
             determinant = 1;
-            // Прямой ход метода Гаусса - преобразование матрицы к треугольному виду
-            for (int i = 0; i < tempMatrix.getRows(); i++) // проходим по всем строкам
+            // РџСЂСЏРјРѕР№ С…РѕРґ РјРµС‚РѕРґР° Р“Р°СѓСЃСЃР° - РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ РјР°С‚СЂРёС†С‹ Рє С‚СЂРµСѓРіРѕР»СЊРЅРѕРјСѓ РІРёРґСѓ
+            for (int i = 0; i < tempMatrix.getRows(); i++) // РїСЂРѕС…РѕРґРёРј РїРѕ РІСЃРµРј СЃС‚СЂРѕРєР°Рј
             {
                 out << "i = "<< i << "\n" << std::setw(10) << tempMatrix << "\n";
-                T coeff = tempMatrix[i][i]; // запоминаем коэффициент по диагонали
+                T coeff = tempMatrix[i][i]; // Р·Р°РїРѕРјРёРЅР°РµРј РєРѕСЌС„С„РёС†РёРµРЅС‚ РїРѕ РґРёР°РіРѕРЅР°Р»Рё
                 determinant *= coeff;
                 
-                for (int j = i; j < tempMatrix.getRows() + 1; j++) // проходим по всем элементам текущей строки, включая вектор коэффициентов
+                for (int j = i; j < tempMatrix.getRows() + 1; j++) // РїСЂРѕС…РѕРґРёРј РїРѕ РІСЃРµРј СЌР»РµРјРµРЅС‚Р°Рј С‚РµРєСѓС‰РµР№ СЃС‚СЂРѕРєРё, РІРєР»СЋС‡Р°СЏ РІРµРєС‚РѕСЂ РєРѕСЌС„С„РёС†РёРµРЅС‚РѕРІ
                 {
-                    // если это элемент на диагонали, то он вырождается в единицу, 
-                    // а если любой другой на текущей строке, то просто делится на этот коэффициент
+                    // РµСЃР»Рё СЌС‚Рѕ СЌР»РµРјРµРЅС‚ РЅР° РґРёР°РіРѕРЅР°Р»Рё, С‚Рѕ РѕРЅ РІС‹СЂРѕР¶РґР°РµС‚СЃСЏ РІ РµРґРёРЅРёС†Сѓ, 
+                    // Р° РµСЃР»Рё Р»СЋР±РѕР№ РґСЂСѓРіРѕР№ РЅР° С‚РµРєСѓС‰РµР№ СЃС‚СЂРѕРєРµ, С‚Рѕ РїСЂРѕСЃС‚Рѕ РґРµР»РёС‚СЃСЏ РЅР° СЌС‚РѕС‚ РєРѕСЌС„С„РёС†РёРµРЅС‚
                     tempMatrix[i][j] /= coeff; 
                 }
                 out << '\n' << std::setw(10) << tempMatrix;
                 for (int j = i + 1; j < tempMatrix.getRows(); j++)
                 {
-                    coeff = tempMatrix[j][i]; // запоминаем коэффициент умножения 
-                    for (int k = i; k < tempMatrix.getCols(); k++) // проходим по всем элементам строки, некоторые элементы которой будут обнуляться
-                        tempMatrix[j][k] -= coeff * tempMatrix[i][k]; // вычитаем из текущей строки верхнюю i-ю строку помноженную на coeff
-                       // в результате получим некоторое количество нулей под единицей
+                    coeff = tempMatrix[j][i]; // Р·Р°РїРѕРјРёРЅР°РµРј РєРѕСЌС„С„РёС†РёРµРЅС‚ СѓРјРЅРѕР¶РµРЅРёСЏ 
+                    for (int k = i; k < tempMatrix.getCols(); k++) // РїСЂРѕС…РѕРґРёРј РїРѕ РІСЃРµРј СЌР»РµРјРµРЅС‚Р°Рј СЃС‚СЂРѕРєРё, РЅРµРєРѕС‚РѕСЂС‹Рµ СЌР»РµРјРµРЅС‚С‹ РєРѕС‚РѕСЂРѕР№ Р±СѓРґСѓС‚ РѕР±РЅСѓР»СЏС‚СЊСЃСЏ
+                        tempMatrix[j][k] -= coeff * tempMatrix[i][k]; // РІС‹С‡РёС‚Р°РµРј РёР· С‚РµРєСѓС‰РµР№ СЃС‚СЂРѕРєРё РІРµСЂС…РЅСЋСЋ i-СЋ СЃС‚СЂРѕРєСѓ РїРѕРјРЅРѕР¶РµРЅРЅСѓСЋ РЅР° coeff
+                       // РІ СЂРµР·СѓР»СЊС‚Р°С‚Рµ РїРѕР»СѓС‡РёРј РЅРµРєРѕС‚РѕСЂРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ РЅСѓР»РµР№ РїРѕРґ РµРґРёРЅРёС†РµР№
                     
                 }
             }
 
             Vector<T> result(tempMatrix.getRows());
             result.transposition();
-            // Обратный ход метода Гаусса
+            // РћР±СЂР°С‚РЅС‹Р№ С…РѕРґ РјРµС‚РѕРґР° Р“Р°СѓСЃСЃР°
             for (int i = result.getLength() - 1; i >= 0; i--)
             {
                 T sumCoeff = 0;
@@ -289,50 +289,30 @@ namespace luMath
         
         static Vector<T> DecompositionMethod(const Matrix<T>& A, const Vector<T>& b, T& determinant, std::ofstream& out = std::cout)
         {
-            // Раскладываем матрицу _matrix на матрицы B и C так, что A = B * C
+            // Р Р°СЃРєР»Р°РґС‹РІР°РµРј РјР°С‚СЂРёС†Сѓ _matrix РЅР° РјР°С‚СЂРёС†С‹ B Рё C С‚Р°Рє, С‡С‚Рѕ A = B * C
             Matrix<T> B(A.getRows(), unit_matrix_initer);
             Matrix<T> C(A.getRows(), unit_matrix_initer);
-            //std::cout << "B: \n" << B << "\nC:\n" << C << "\n";
             unsigned m = B.getRows();
             for (int j = 0; j < m; j++)
             {
-                // b_ij = a_ij - sum(b_ik*c_kj)
-                for (int i = j; i < m; i++)// проходим по элементам столбца матрицы B
+                
+                for (int i = j; i < m; i++)// РїСЂРѕС…РѕРґРёРј РїРѕ СЌР»РµРјРµРЅС‚Р°Рј СЃС‚РѕР»Р±С†Р° РјР°С‚СЂРёС†С‹ B
                 {
                     T sumCoeff = 0;
                     for (int k = 0; k <= j - 1; k++)
-                    {
-                        //std::cout << "\n" << B[i][k] << " * " << C[k][j] << " + " << sumCoeff << " = ";
                         sumCoeff += B[i][k] * C[k][j];
-                        //std::cout << sumCoeff;
-                    }
-                    //std::cout << "\n" << (*A)[i][j] << " - " << sumCoeff << " = ";
+                       
                     B[i][j] = A[i][j] - sumCoeff;
-                    //std::cout << B[i][j] << "\n";
-                    //std::cout << "B: \n" << std::setw(10) << B << "\nC:\n" << std::setw(10) << C << "\n";
                 }
-                //std::cout << "\nОбработали столбец матрицы B: " << j << "\n";
-                // c_ij = (1/b_ii)*(a_ij - sum(b_ik*c_kj))
                 for (int i = j + 1; i < m; i++)
                 {
                     T sumCoeff = 0;
                     for (int k = 0; k <= j - 1; k++)
-                    {
-                        //std::cout << "\n" << B[j][k] << " * " << C[k][i] << " + " << sumCoeff << " = ";
                         sumCoeff += B[j][k] * C[k][i];
-                        //std::cout << sumCoeff;
-
-                    }
-                    //std::cout << "\n(1 / " << B[j][j] << ") * (" << (*A)[j][i] << " - " << sumCoeff << ") = ";
                     C[j][i] = (1 / B[j][j]) * (A[j][i] - sumCoeff);
-                    //std::cout << C[j][i] << "\n";
-                    //std::cout << "B: \n" <<std::setw(10) << B << "\nC:\n" << std::setw(10) << C << "\n";
                 }
-                //std::cout << "\nОбработали строку матрицы C: " << j << "\n";
-                out << "\n\ti = "<< j<<"\n\tМатрица B : \n" << std::setprecision(5) << std::setw(15) << B << "\n\tМатрица C : \n"  << std::setw(15) << C;
+                out << "\n\ti = "<< j<<"\n\tРњР°С‚СЂРёС†Р° B : \n" << std::setprecision(5) << std::setw(15) << B << "\n\tРњР°С‚СЂРёС†Р° C : \n"  << std::setw(15) << C;
             }
-
-            //std::cout << "\nB * C: \n" << std::setw(10) << B << "\n*\n" << std::setw(10) << C << "\n" << std::setw(10) << B*C << "\n";
             Vector<T> y(m);
             determinant = 1;
             for (int i = 0; i < m; i++)
@@ -340,10 +320,8 @@ namespace luMath
                 T sumCoeff = 0;
                 for (int k = 0; k <= i - 1; k++)
                     sumCoeff += B[i][k] * y[k];
-                //std::cout << "\ni=" << i << ": y = " << " ( " << (*b)[i] << " - " << sumCoeff << ") / " << B[i][i] << " = ";
                 y[i] = (b[i] - sumCoeff) / B[i][i];
                 determinant *= B[i][i];
-                //std::cout << y[i];
             }
             out << "\ny' = \n" <<y.transposition() << "\n";
             Vector<T> x(m);
@@ -352,14 +330,10 @@ namespace luMath
                 T sumCoeff = 0;
                 for (int k = i+1; k < m; k++)
                     sumCoeff += C[i][k] * x[k];
-                //std::cout << "\ni=" << i << ": x = "  << y[i] << " - " << sumCoeff << " = ";
                 x[i] = y[i] - sumCoeff;
-                //std::cout << x[i];
             }
-            //std::cout << "\nx=" << x << "\n";
             x.transposition();
             return x;
-
         }
     
 
@@ -375,7 +349,7 @@ namespace luMath
                         sum += A[i][j];
                 if (abs(A[i][i]) <= abs(sum))
                 {
-                    out << "\n\tНеобходимость не выполняется\n";
+                    out << "\n\tРќРµРѕР±С…РѕРґРёРјРѕСЃС‚СЊ РЅРµ РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ\n";
                     return false;
                 }
             }
@@ -414,13 +388,9 @@ namespace luMath
             {
                 x0 = x1;
                 x1 = b + a * x1;
-                //std::cout << "\nx0 = \n" << x0 << "\nx1 = \n" << x1;
-                //std::cout << "\nx1-x0 = \n" << x1 - x0 
-                //   << "\n" << (x1 - x0).getModule()<< "<->"<< (1 - a.getModule()) / a.getModule() * 0.000001;
             } while ((x1-x0).getModule() >= abs( (1-a.getModule()) / a.getModule() * 0.000001) );
             return x1;
         }
-
 
         static Vector<T> SeidelMethod(const Matrix<T>& A, const Vector<T>& B, T& determinant, std::ofstream& out = std::cout)
         {
@@ -428,10 +398,9 @@ namespace luMath
             Matrix<T> a0(A);
             Vector<T> b0(B);
             
-
             if (!converge(A, out)) 
             {
-                out << "\nПреобразуем матрицу к симметрично положительно определённой.";
+                out << "\nРџСЂРµРѕР±СЂР°Р·СѓРµРј РјР°С‚СЂРёС†Сѓ Рє СЃРёРјРјРµС‚СЂРёС‡РЅРѕ РїРѕР»РѕР¶РёС‚РµР»СЊРЅРѕ РѕРїСЂРµРґРµР»С‘РЅРЅРѕР№.";
                 Matrix<T> a_T(a0.transposition());
                 out << "\na^T:\n" << a_T;
                 a0 = a_T * a0;
@@ -477,7 +446,6 @@ namespace luMath
             } while ((x1 - x0).getModule() >= abs((1 - a.getModule()) / a.getModule() * EPS) && count < MAX_ITER);
             return x1;
         }
-
     };
 }
 #endif
