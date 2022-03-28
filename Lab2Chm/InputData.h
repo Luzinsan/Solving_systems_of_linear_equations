@@ -52,13 +52,13 @@ namespace luMath
         Vector<T>* b;
         Vector<T>* x;
         int m; // размерность квадратной матрицы
+
         // проверка и точность
         Vector<T>* ResidualVector;
         Matrix<T>* ResidualMatrix;
 
         METHOD _method;
         TASK _task;
-        
         T _determinant = 0;
         
         int _NAfterComma;
@@ -68,7 +68,7 @@ namespace luMath
         InputData()
         {
             std::ifstream* _fin  = new std::ifstream("input.txt");
-            _fout = new std::ofstream("output.txt"/*, std::ios::app*/);
+            _fout = new std::ofstream("output.txt");
             int c;
             *_fin >> c; // считывается метод
             _method = static_cast<METHOD>(c);
@@ -96,8 +96,6 @@ namespace luMath
             ResidualVector = new Vector<T>(m);
             (*ResidualVector).transposition();
             ResidualMatrix = new Matrix<T>(m);
-            
-           
         }
 
         InputData(const Matrix<T>& matrix, std::ofstream* out) 
@@ -151,13 +149,7 @@ namespace luMath
         //вектор невязки
         void setResidualVector(const Matrix<T>& _A, const Vector<T>& _x, const Vector<T>& _b)
         {
-            *_fout << "\nВектор невязки e*:\n"
-               /* << "A:\n" << _A
-                << "\n* x:\n" << _x
-                << "--------------------------\n" << _A * _x
-                << "-\n" << _b
-                << "--------------------------\n"*/ << (_A * _x) - _b;
-            
+            *_fout << "\nВектор невязки e*:\n" << (_A * _x) - _b;
             (*ResidualVector) = (_A * _x) - _b;
         }
 
@@ -178,8 +170,7 @@ namespace luMath
                         E[i][j] = 0;
                 E[i].transposition();
             }
-            //std::cout << "\nE:\n" << E << "\n";
-
+           
             for (int i = 0; i < m; i++) 
             {
                 x_temp[i] = Method(*A, E[i], _determinant,*_fout);
@@ -191,7 +182,7 @@ namespace luMath
             *_fout << "\nОбратная матрица:\n" << std::setw(10) << (*_inverseMatrix);
             
             *ResidualMatrix = (*_inverseMatrix) * (*A) - Matrix<double>(m, unit_matrix_initer);
-            *_fout << "\nМатрица невязки:\n" /*<< std::fixed*/ << std::setprecision(5) << std::setw(15) << *ResidualMatrix;
+            *_fout << "\nМатрица невязки:\n"  << std::setprecision(5) << std::setw(15) << *ResidualMatrix;
             *_fout << "\nЕвклидова норма матрицы невязки: " << (*ResidualMatrix).getModule() << "\n";
                
         }
@@ -200,6 +191,7 @@ namespace luMath
         {
             (*x) = Method(*A, *b, _determinant, *_fout);
         }
+        
         void getRoot(Vector<T>(*Method)(const Matrix<T>&, const Vector<T>&, T& determinant, std::ofstream&))
         {
             if (Method == InputData::GaussMethod)
@@ -248,7 +240,6 @@ namespace luMath
                         expandedMatrix[i][j] = b[i];
                     else
                         expandedMatrix[i][j] = A[i][j];
-            //*_fout << "\nРасширенная матрица = \n" << expandedMatrix;
             return GaussMethod(expandedMatrix, determinant,out);
         }
 
@@ -263,36 +254,23 @@ namespace luMath
                 out << "i = "<< i << "\n" << std::setw(10) << tempMatrix << "\n";
                 T coeff = tempMatrix[i][i]; // запоминаем коэффициент по диагонали
                 determinant *= coeff;
-                //std::cout << "\ncoeff=" << coeff << "\n";
-                //std::cout << "\n_determinant=" << _determinant << "\n";
                 
                 for (int j = i; j < tempMatrix.getRows() + 1; j++) // проходим по всем элементам текущей строки, включая вектор коэффициентов
                 {
-                    //std::cout << '\n' << tempMatrix[i][j] << " / " << coeff << " = ";
                     // если это элемент на диагонали, то он вырождается в единицу, 
                     // а если любой другой на текущей строке, то просто делится на этот коэффициент
                     tempMatrix[i][j] /= coeff; 
-                    //std::cout << tempMatrix[i][j] << '\n';
-                    //std::cout << '\n' << std::setw(10) << tempMatrix;
-
                 }
                 out << '\n' << std::setw(10) << tempMatrix;
                 for (int j = i + 1; j < tempMatrix.getRows(); j++)
                 {
                     coeff = tempMatrix[j][i]; // запоминаем коэффициент умножения 
                     for (int k = i; k < tempMatrix.getCols(); k++) // проходим по всем элементам строки, некоторые элементы которой будут обнуляться
-                    {
-                        //std::cout << '\n' << tempMatrix[j][k] << " - " << coeff << " * " << tempMatrix[i][k] << " = ";
                         tempMatrix[j][k] -= coeff * tempMatrix[i][k]; // вычитаем из текущей строки верхнюю i-ю строку помноженную на coeff
-                        //std::cout << tempMatrix[j][k] << '\n'; // в результате получим некоторое количество нулей под единицей
-                        //std::cout << '\n' << std::setw(10) << tempMatrix;
-                    }
-                    //std::cout << '\n' << std::setw(10) << tempMatrix;
+                       // в результате получим некоторое количество нулей под единицей
+                    
                 }
             }
-            //std::cout << "\nМатрица с единичной диагональю: \n" << std::setw(10) << tempMatrix;
-            //std::cout << "\nОпределитель матрицы: " << determinant << "\n";
-
 
             Vector<T> result(tempMatrix.getRows());
             result.transposition();
@@ -301,15 +279,9 @@ namespace luMath
             {
                 T sumCoeff = 0;
                 for (int j = i + 1; j < result.getLength(); j++)
-                {
-                    //std::cout << "\n" << tempMatrix[i][j] << " * " << result[j] << " + " << sumCoeff << " = ";
                     sumCoeff += tempMatrix[i][j] * result[j];
-                   // std::cout << sumCoeff << "\n";
-                }
-                //std::cout << "result: " << tempMatrix[i][m] << " - " << sumCoeff << " = ";
+                  
                 result[i] = tempMatrix[i][result.getLength()] - sumCoeff;
-                //std::cout << result[i] << "\n";
-
             }
             return result;
         }
@@ -411,7 +383,6 @@ namespace luMath
         }
 
         
-
         static Vector<T> SimpleIterationMethod(const Matrix<T>& A, const Vector<T>& B, T& determinant, std::ofstream& out = std::cout)
         {
             int m = A.getRows();
@@ -450,6 +421,7 @@ namespace luMath
             return x1;
         }
 
+
         static Vector<T> SeidelMethod(const Matrix<T>& A, const Vector<T>& B, T& determinant, std::ofstream& out = std::cout)
         {
             int m = A.getRows();
@@ -461,7 +433,6 @@ namespace luMath
             {
                 out << "\nПреобразуем матрицу к симметрично положительно определённой.";
                 Matrix<T> a_T(a0.transposition());
-                
                 out << "\na^T:\n" << a_T;
                 a0 = a_T * a0;
                 out << "\n a^T * a = \n" << a0;
@@ -469,12 +440,10 @@ namespace luMath
                 out << "\n a^T * b = \n" << b0;
             }
                
-
             Vector<double> x0(b0);
             x0.transposition();
             Vector<double> x1(b0);
             x1.transposition();
-
 
             Matrix<T> a(A);
             Vector<T> b(B);
@@ -503,21 +472,12 @@ namespace luMath
                     for (int j = i+1; j < m; j++)
                         sum2 += a[i][j] * x0[j];
                     x1[i] = b[i] + sum1 + sum2;
-                    
                 }
-                
-                //std::cout << "\nx0 = \n" << x0 << "\nx1 = \n" << x1;
-                //std::cout << "\nx1-x0 = \n" << x1 - x0 
-                          //<< "\n" << (x1 - x0).getModule()<< "<->"<< (1 - a.getModule()) / a.getModule() * EPS;
                 count++;
             } while ((x1 - x0).getModule() >= abs((1 - a.getModule()) / a.getModule() * EPS) && count < MAX_ITER);
             return x1;
-        
-        
-        
-        
         }
-       
+
     };
 }
 #endif
