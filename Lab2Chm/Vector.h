@@ -16,18 +16,13 @@ namespace luMath
 		using Base<T>::m_item;
 		using Base<T>::m_id;
 
-		Vector()
-			: Base<T>(), m_length(0)
-		{
-			//std::cout << "Конструктор #1 -> Вектор №" << m_id << std::endl;
-		}
+		Vector() : Base<T>(), m_length(0) {}
 
-		Vector(int length, const T* items = NULL, bool transpose = false) //если transpose=true - то вектор-столбец
+		Vector(int length, const T* items = NULL, bool transpose = false) //РµСЃР»Рё transpose=true - С‚Рѕ РІРµРєС‚РѕСЂ-СЃС‚РѕР»Р±РµС†
 			: Base<T>(1, length, items), m_length(length)
 		{
 			if (transpose)
 				transposition();
-			//std::cout << "Конструктор #2 -> Вектор №" << m_id << std::endl;
 		}
 
 		Vector(const std::initializer_list<T> list, bool transpose = false)
@@ -35,7 +30,6 @@ namespace luMath
 		{
 			if (transpose)
 				transposition();
-			//std::cout << "Конструктор #3 -> Вектор №" << m_id << std::endl;
 		}
 
 		Vector(int length, T(*func)(T, T), T min = 0, T max = 100, bool transpose = false)
@@ -45,35 +39,26 @@ namespace luMath
 				m_item[iii] = func(min, max);
 			if (transpose)
 				transposition();
-			//std::cout << "Конструктор #4 -> Вектор №" << m_id << std::endl;
 		}
 
 
 		Vector(const Vector<T>& fromVector) noexcept
 		{
 			Vector<T>::operator=(fromVector);
-			//std::cout << "Конструктор #5 -> Вектор №" << m_id << std::endl;
 		}
 		Vector(Vector<T>&& fromVector) noexcept
 		{
 			Vector<T>::operator=(std::move(fromVector));
-			//std::cout << "Конструктор #6 -> Вектор №" << m_id << std::endl;
-
 		}
 		Vector(const Base<T>& fromBase) noexcept
 		{
 			Vector<T>::operator=(fromBase);
-			//std::cout << "Конструктор #7 -> Вектор №" << m_id << std::endl;
 		}
 		Vector(Base<T>&& fromBase) noexcept
 		{
 			Vector<T>::operator=(std::move(fromBase));
-			//std::cout << "Конструктор #8 -> Вектор №" << m_id << std::endl;
 		}
-		virtual ~Vector() noexcept
-		{
-			//std::cout << "Деструктор вектора №" << m_id << std::endl;
-		}
+		virtual ~Vector() noexcept {	}
 
 		unsigned getLength(void) const
 		{
@@ -97,7 +82,7 @@ namespace luMath
 		const T& operator[](int index) const
 		{
 			if (index >= m_length || m_length + index < 0)
-				throw std::out_of_range("Номер индекса выходит за пределы вектора №" + std::to_string(m_id) + '\n');
+				throw std::out_of_range("РќРѕРјРµСЂ РёРЅРґРµРєСЃР° РІС‹С…РѕРґРёС‚ Р·Р° РїСЂРµРґРµР»С‹ РІРµРєС‚РѕСЂР° в„–" + std::to_string(m_id) + '\n');
 			else if (index < 0)
 				index += m_length;
 			return m_item[index];
@@ -106,7 +91,7 @@ namespace luMath
 		T& operator[](int index)
 		{
 			if (index >= static_cast<int>(m_length) || static_cast<int>(m_length) + index < 0)
-				throw std::out_of_range("Номер индекса выходит за пределы вектора №" + std::to_string(m_id) + '\n');
+				throw std::out_of_range("РќРѕРјРµСЂ РёРЅРґРµРєСЃР° РІС‹С…РѕРґРёС‚ Р·Р° РїСЂРµРґРµР»С‹ РІРµРєС‚РѕСЂР° в„–" + std::to_string(m_id) + '\n');
 			else if (index < 0)
 				index += m_length;
 			return m_item[index];
@@ -116,7 +101,7 @@ namespace luMath
 		const Vector& operator*=(const Vector<T>& onVector)
 		{
 			if (m_cols == 1 && onVector.m_rows == 1)
-				throw std::logic_error("Преобразования вектора в матрицу\n");
+				throw std::logic_error("РџСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёСЏ РІРµРєС‚РѕСЂР° РІ РјР°С‚СЂРёС†Сѓ\n");
 			else
 				Base<T>::operator*=(onVector);
 			return *this;
@@ -124,7 +109,7 @@ namespace luMath
 		const Vector<T>& operator*=(const Base<T>& onBase)
 		{
 			if (isMatrix(onBase))
-				throw std::logic_error("Преобразования вектора в матрицу\n");
+				throw std::logic_error("РџСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёСЏ РІРµРєС‚РѕСЂР° РІ РјР°С‚СЂРёС†Сѓ\n");
 			Vector<T>::operator*=(Vector<T>(onBase));
 			return *this;
 		}
@@ -153,7 +138,7 @@ namespace luMath
 		const Vector<T>& operator=(const Base<T>& fromBase) noexcept
 		{
 			if (isMatrix(fromBase))
-				throw std::invalid_argument("Вектор не может быть инициализирован матрицей\n");
+				throw std::invalid_argument("Р’РµРєС‚РѕСЂ РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅ РјР°С‚СЂРёС†РµР№\n");
 			Base<T>::operator=(fromBase);
 			m_length = m_rows > 1 ? m_rows : m_cols;
 			return *this;
@@ -162,7 +147,7 @@ namespace luMath
 		const Vector<T>& operator=(Base<T>&& fromBase)
 		{
 			if (isMatrix(fromBase))
-				throw std::invalid_argument("Обмен данными невозможен!\n");
+				throw std::invalid_argument("РћР±РјРµРЅ РґР°РЅРЅС‹РјРё РЅРµРІРѕР·РјРѕР¶РµРЅ!\n");
 			Base<T>::operator=(std::move(fromBase));
 			m_length = m_rows > 1 ? m_rows : m_cols;
 			return *this;
