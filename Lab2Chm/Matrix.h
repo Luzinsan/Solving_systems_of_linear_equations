@@ -21,7 +21,7 @@ namespace luMath
             T& operator[](int col)
             {
                 if (col >= static_cast<int>(r_cols) || static_cast<int>(r_cols) + col < 0)
-                    throw std::out_of_range("Номер строки выходит за пределы матрицы №" + r_id + '\n');
+                    throw std::out_of_range("РќРѕРјРµСЂ СЃС‚СЂРѕРєРё РІС‹С…РѕРґРёС‚ Р·Р° РїСЂРµРґРµР»С‹ РјР°С‚СЂРёС†С‹ в„–" + r_id + '\n');
                 else if (col < 0)
                     col = r_cols + col;
                 return  r_row[col];
@@ -30,7 +30,7 @@ namespace luMath
             const T& operator[](int col) const
             {
                 if (col >= static_cast<int>(r_cols) || static_cast<int>(r_cols) + col < 0)
-                    throw std::out_of_range("Номер строки выходит за пределы матрицы №" + r_id + '\n');
+                    throw std::out_of_range("РќРѕРјРµСЂ СЃС‚СЂРѕРєРё РІС‹С…РѕРґРёС‚ Р·Р° РїСЂРµРґРµР»С‹ РјР°С‚СЂРёС†С‹ в„–" + r_id + '\n');
                 else if (col < 0)
                     col = r_cols + col;
                 return  r_row[col];
@@ -44,30 +44,30 @@ namespace luMath
 
         Matrix() : Base<T>()
         {
-            //std::cout << "Конструктор #1 -> Матрица №" << m_id << std::endl;
+            //std::cout << "РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ #1 -> РњР°С‚СЂРёС†Р° в„–" << m_id << std::endl;
         }
         explicit Matrix(int rows, int cols, const T* array = NULL)
             : Base<T>(rows, cols, array)
         {
-            //std::cout << "Конструктор #2 -> Матрица №" << m_id << std::endl;
+            //std::cout << "РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ #2 -> РњР°С‚СЂРёС†Р° в„–" << m_id << std::endl;
         }
 
         explicit Matrix(int size, const T* array = NULL)
             : Base<T>(size, size, array)
         {
-            //std::cout << "Конструктор #3 -> Матрица №" << m_id << std::endl;
+            //std::cout << "РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ #3 -> РњР°С‚СЂРёС†Р° в„–" << m_id << std::endl;
         }
 
         Matrix(const std::initializer_list<T> list, int rows = 0, int cols = 0)
             : Base<T>(list, rows, cols)
         {
-            //std::cout << "Конструктор #4 -> Матрица №" << m_id << std::endl;
+            //std::cout << "РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ #4 -> РњР°С‚СЂРёС†Р° в„–" << m_id << std::endl;
         }
 
         Matrix(int size, T(*func)(T, T), T min = 0, T max = 100)
             : Matrix<T>(size, size, func, min, max)
         {
-            //std::cout << "Конструктор #5 -> Матрица №" << m_id << std::endl;
+            //std::cout << "РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ #5 -> РњР°С‚СЂРёС†Р° в„–" << m_id << std::endl;
         }
 
 
@@ -77,13 +77,13 @@ namespace luMath
             for (unsigned iii = 0; iii < m_rows; ++iii)
                 for (unsigned jjj = 0; jjj < m_cols; ++jjj)
                     m_item[iii * m_cols + jjj] = func(min, max);
-            //std::cout << "Конструктор #6 -> Матрица №" << m_id << std::endl;
+            //std::cout << "РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ #6 -> РњР°С‚СЂРёС†Р° в„–" << m_id << std::endl;
         }
 
         Matrix(int size, T(*func)(size_t, size_t, size_t, size_t))
             : Matrix<T>(size, size, func)
         {
-            //std::cout << "Конструктор #7 -> Матрица №" << m_id << std::endl;
+            //std::cout << "РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ #7 -> РњР°С‚СЂРёС†Р° в„–" << m_id << std::endl;
         }
 
         Matrix(int rows, int cols, T(*func)(size_t, size_t, size_t, size_t))
@@ -92,38 +92,38 @@ namespace luMath
             for (unsigned iii = 0; iii < m_rows; ++iii)
                 for (unsigned jjj = 0; jjj < m_cols; ++jjj)
                     m_item[iii * m_cols + jjj] = func(m_rows, m_cols, iii, jjj);
-            //std::cout << "Конструктор #8 -> Матрица №" << m_id << std::endl;
+            //std::cout << "РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ #8 -> РњР°С‚СЂРёС†Р° в„–" << m_id << std::endl;
         }
 
         Matrix(const Matrix<T>& fromMatrix)
             : Base<T>(fromMatrix.m_rows, fromMatrix.m_cols, fromMatrix.m_item)
         {
-            //std::cout << "Конструктор #9 -> Матрица №" << m_id << std::endl;
+            //std::cout << "РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ #9 -> РњР°С‚СЂРёС†Р° в„–" << m_id << std::endl;
         }
 
         Matrix(Matrix<T>&& fromMatrix) noexcept
             : Base<T>(fromMatrix)
         {
-            //std::cout << "Конструктор #10 -> Матрица №" << m_id << std::endl;
+            //std::cout << "РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ #10 -> РњР°С‚СЂРёС†Р° в„–" << m_id << std::endl;
         }
 
         Matrix(const Base<T>& fromBase)
             : Base<T>(fromBase)
         {
-            //std::cout << "Конструктор #11 -> Матрица №" << m_id << std::endl;
+            //std::cout << "РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ #11 -> РњР°С‚СЂРёС†Р° в„–" << m_id << std::endl;
         }
 
         Matrix(Base<T>&& fromBase) noexcept
             : Base<T>(std::move(fromBase))
         {
-            //std::cout << "Конструктор #12 -> Матрица №" << m_id << std::endl;
+            //std::cout << "РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ #12 -> РњР°С‚СЂРёС†Р° в„–" << m_id << std::endl;
         }
 
 
 
         virtual ~Matrix() noexcept
         {
-            //std::cout << "Деструктор матрицы №" << m_id << std::endl;
+            //std::cout << "Р”РµСЃС‚СЂСѓРєС‚РѕСЂ РјР°С‚СЂРёС†С‹ в„–" << m_id << std::endl;
         }
 
         unsigned getRows() const
@@ -147,7 +147,7 @@ namespace luMath
         Row<T> operator[](int row)
         {
             if (row >= static_cast<int>(m_rows) || static_cast<int>(m_rows) + row < 0)
-                throw std::out_of_range("Номер строки выходит за пределы матрицы №" + std::to_string(m_id) + '\n');
+                throw std::out_of_range("РќРѕРјРµСЂ СЃС‚СЂРѕРєРё РІС‹С…РѕРґРёС‚ Р·Р° РїСЂРµРґРµР»С‹ РјР°С‚СЂРёС†С‹ в„–" + std::to_string(m_id) + '\n');
             else if (row < 0)
                 row = m_rows + row;
             return  Row<T>(m_cols, m_item + (row * m_cols), std::to_string(m_id));
@@ -156,7 +156,7 @@ namespace luMath
         const Row<T> operator[](int row) const
         {
             if (row >= static_cast<int>(m_rows) || static_cast<int>(m_rows) + row < 0)
-                throw std::out_of_range("Номер строки выходит за пределы матрицы №" + std::to_string(m_id) + '\n');
+                throw std::out_of_range("РќРѕРјРµСЂ СЃС‚СЂРѕРєРё РІС‹С…РѕРґРёС‚ Р·Р° РїСЂРµРґРµР»С‹ РјР°С‚СЂРёС†С‹ в„–" + std::to_string(m_id) + '\n');
             else if (row < 0)
                 row = m_rows + row;
             return  Row<T>(m_cols, m_item + (row * m_cols), std::to_string(m_id));
