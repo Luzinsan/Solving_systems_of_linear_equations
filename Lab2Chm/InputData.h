@@ -292,7 +292,7 @@ namespace luMath
             // Раскладываем матрицу _matrix на матрицы B и C так, что A = B * C
             Matrix<T> B(A.getRows(), unit_matrix_initer);
             Matrix<T> C(A.getRows(), unit_matrix_initer);
-            //std::cout << "B: \n" << B << "\nC:\n" << C << "\n";
+            std::cout << "B: \n" << B << "\nC:\n" << C << "\n";
             unsigned m = B.getRows();
             for (int j = 0; j < m; j++)
             {
@@ -302,37 +302,37 @@ namespace luMath
                     T sumCoeff = 0;
                     for (int k = 0; k <= j - 1; k++)
                     {
-                        //std::cout << "\n" << B[i][k] << " * " << C[k][j] << " + " << sumCoeff << " = ";
+                        std::cout << "\n" << B[i][k] << " * " << C[k][j] << " + " << sumCoeff << " = ";
                         sumCoeff += B[i][k] * C[k][j];
-                        //std::cout << sumCoeff;
+                        std::cout << sumCoeff;
                     }
-                    //std::cout << "\n" << (*A)[i][j] << " - " << sumCoeff << " = ";
+                    std::cout << "\n" << (A)[i][j] << " - " << sumCoeff << " = ";
                     B[i][j] = A[i][j] - sumCoeff;
-                    //std::cout << B[i][j] << "\n";
-                    //std::cout << "B: \n" << std::setw(10) << B << "\nC:\n" << std::setw(10) << C << "\n";
+                    std::cout << B[i][j] << "\n";
+                    std::cout << "B: \n" << std::setw(10) << B << "\nC:\n" << std::setw(10) << C << "\n";
                 }
-                //std::cout << "\nОбработали столбец матрицы B: " << j << "\n";
-                // c_ij = (1/b_ii)*(a_ij - sum(b_ik*c_kj))
+                std::cout << "\nОбработали столбец матрицы B: " << j << "\n";
+                 //c_ij = (1/b_ii)*(a_ij - sum(b_ik*c_kj))
                 for (int i = j + 1; i < m; i++)
                 {
                     T sumCoeff = 0;
                     for (int k = 0; k <= j - 1; k++)
                     {
-                        //std::cout << "\n" << B[j][k] << " * " << C[k][i] << " + " << sumCoeff << " = ";
+                        std::cout << "\n" << B[j][k] << " * " << C[k][i] << " + " << sumCoeff << " = ";
                         sumCoeff += B[j][k] * C[k][i];
-                        //std::cout << sumCoeff;
+                        std::cout << sumCoeff;
 
                     }
-                    //std::cout << "\n(1 / " << B[j][j] << ") * (" << (*A)[j][i] << " - " << sumCoeff << ") = ";
+                    std::cout << "\n(1 / " << B[j][j] << ") * (" << (A)[j][i] << " - " << sumCoeff << ") = ";
                     C[j][i] = (1 / B[j][j]) * (A[j][i] - sumCoeff);
-                    //std::cout << C[j][i] << "\n";
-                    //std::cout << "B: \n" <<std::setw(10) << B << "\nC:\n" << std::setw(10) << C << "\n";
+                    std::cout << C[j][i] << "\n";
+                    std::cout << "B: \n" <<std::setw(10) << B << "\nC:\n" << std::setw(10) << C << "\n";
                 }
-                //std::cout << "\nОбработали строку матрицы C: " << j << "\n";
+                std::cout << "\nОбработали строку матрицы C: " << j << "\n";
                 out << "\n\ti = "<< j<<"\n\tМатрица B : \n" << std::setprecision(5) << std::setw(15) << B << "\n\tМатрица C : \n"  << std::setw(15) << C;
             }
 
-            //std::cout << "\nB * C: \n" << std::setw(10) << B << "\n*\n" << std::setw(10) << C << "\n" << std::setw(10) << B*C << "\n";
+            std::cout << "\nB * C: \n" << std::setw(10) << B << "\n*\n" << std::setw(10) << C << "\n" << std::setw(10) << B*C << "\n";
             Vector<T> y(m);
             determinant = 1;
             for (int i = 0; i < m; i++)
@@ -340,10 +340,10 @@ namespace luMath
                 T sumCoeff = 0;
                 for (int k = 0; k <= i - 1; k++)
                     sumCoeff += B[i][k] * y[k];
-                //std::cout << "\ni=" << i << ": y = " << " ( " << (*b)[i] << " - " << sumCoeff << ") / " << B[i][i] << " = ";
+                std::cout << "\ni=" << i << ": y = " << " ( " << (b)[i] << " - " << sumCoeff << ") / " << B[i][i] << " = ";
                 y[i] = (b[i] - sumCoeff) / B[i][i];
                 determinant *= B[i][i];
-                //std::cout << y[i];
+                std::cout << y[i];
             }
             out << "\ny' = \n" <<y.transposition() << "\n";
             Vector<T> x(m);
@@ -352,11 +352,11 @@ namespace luMath
                 T sumCoeff = 0;
                 for (int k = i+1; k < m; k++)
                     sumCoeff += C[i][k] * x[k];
-                //std::cout << "\ni=" << i << ": x = "  << y[i] << " - " << sumCoeff << " = ";
+                std::cout << "\ni=" << i << ": x = "  << y[i] << " - " << sumCoeff << " = ";
                 x[i] = y[i] - sumCoeff;
-                //std::cout << x[i];
+                std::cout << x[i];
             }
-            //std::cout << "\nx=" << x << "\n";
+            std::cout << "\nx=" << x << "\n";
             x.transposition();
             return x;
 

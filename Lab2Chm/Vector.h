@@ -16,18 +16,13 @@ namespace luMath
 		using Base<T>::m_item;
 		using Base<T>::m_id;
 
-		Vector()
-			: Base<T>(), m_length(0)
-		{
-			//std::cout << "Конструктор #1 -> Вектор №" << m_id << std::endl;
-		}
+		Vector() : Base<T>(), m_length(0) {}
 
 		Vector(int length, const T* items = NULL, bool transpose = false) //если transpose=true - то вектор-столбец
 			: Base<T>(1, length, items), m_length(length)
 		{
 			if (transpose)
 				transposition();
-			//std::cout << "Конструктор #2 -> Вектор №" << m_id << std::endl;
 		}
 
 		Vector(const std::initializer_list<T> list, bool transpose = false)
@@ -35,7 +30,6 @@ namespace luMath
 		{
 			if (transpose)
 				transposition();
-			//std::cout << "Конструктор #3 -> Вектор №" << m_id << std::endl;
 		}
 
 		Vector(int length, T(*func)(T, T), T min = 0, T max = 100, bool transpose = false)
@@ -45,35 +39,26 @@ namespace luMath
 				m_item[iii] = func(min, max);
 			if (transpose)
 				transposition();
-			//std::cout << "Конструктор #4 -> Вектор №" << m_id << std::endl;
 		}
 
 
 		Vector(const Vector<T>& fromVector) noexcept
 		{
 			Vector<T>::operator=(fromVector);
-			//std::cout << "Конструктор #5 -> Вектор №" << m_id << std::endl;
 		}
 		Vector(Vector<T>&& fromVector) noexcept
 		{
 			Vector<T>::operator=(std::move(fromVector));
-			//std::cout << "Конструктор #6 -> Вектор №" << m_id << std::endl;
-
 		}
 		Vector(const Base<T>& fromBase) noexcept
 		{
 			Vector<T>::operator=(fromBase);
-			//std::cout << "Конструктор #7 -> Вектор №" << m_id << std::endl;
 		}
 		Vector(Base<T>&& fromBase) noexcept
 		{
 			Vector<T>::operator=(std::move(fromBase));
-			//std::cout << "Конструктор #8 -> Вектор №" << m_id << std::endl;
 		}
-		virtual ~Vector() noexcept
-		{
-			//std::cout << "Деструктор вектора №" << m_id << std::endl;
-		}
+		virtual ~Vector() noexcept {	}
 
 		unsigned getLength(void) const
 		{
