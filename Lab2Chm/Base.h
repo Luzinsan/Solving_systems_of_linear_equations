@@ -33,7 +33,7 @@ namespace luMath
 					m_item[iii] = items[iii];
 			else
 				for (unsigned iii = 0; iii < m_rows * m_cols; iii++)
-					m_item[iii] = static_cast<T>(0);
+					m_item[iii] = 0;
 		}
 
 		Base(const std::initializer_list<T> list, int rows = 0, int cols = 0)
